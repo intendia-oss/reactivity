@@ -1,0 +1,19 @@
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
+             xmlns:g="urn:import:com.google.gwt.user.client.ui">
+
+    <ui:import field="sample.nested.client.NameTokens.*"/>
+
+    <g:HTMLPanel tag="nav">
+        <ul>
+            <li>
+                <a href="#{homePage}">Home</a>
+            </li>
+            <li>
+                <a href="#{aboutUsPage}">About Us</a>
+            </li>
+            <li>
+                <a href="#{contactPage}">Contact</a>
+            </li>
+        </ul>
+    </g:HTMLPanel>
+</ui:UiBinder>

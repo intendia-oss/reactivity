@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.intendia.gwt.reactivity</groupId>
+        <artifactId>reactivity-parent</artifactId>
+        <version>HEAD-SNAPSHOT</version>
+    </parent>
+    <artifactId>reactivity-core</artifactId>
+    <packaging>gwt-lib</packaging>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>net.ltgt.gwt.maven</groupId>
+                <artifactId>gwt-maven-plugin</artifactId>
+                <configuration>
+                    <moduleName>com.intendia.reactivity.Reactivity</moduleName>
+                    <skipModule>true</skipModule>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency><groupId>com.google.gwt</groupId><artifactId>gwt-user</artifactId><scope>provided</scope></dependency>
+        <dependency><groupId>com.google.gwt</groupId><artifactId>gwt-dev</artifactId><scope>provided</scope></dependency>
+        <dependency><groupId>com.google.dagger</groupId><artifactId>dagger-gwt</artifactId><version>2.13</version></dependency>
+        <dependency><groupId>com.intendia.gwt</groupId><artifactId>rxjava2-gwt</artifactId><version>2.1.2-beta1</version></dependency>
+        <dependency><groupId>com.intendia.gwt.rxgwt2</groupId><artifactId>rxgwt</artifactId><version>2.1</version></dependency>
+        <dependency><groupId>com.google.guava</groupId><artifactId>guava</artifactId></dependency>
+        <dependency><groupId>com.google.guava</groupId><artifactId>guava-gwt</artifactId><version>${guava.version}</version></dependency>
+
+        <!-- Annotation processor -->
+        <dependency><groupId>com.google.dagger</groupId><artifactId>dagger-compiler</artifactId><version>2.13</version><scope>provided</scope></dependency>
+
+        <!-- Test dependencies -->
+        <dependency><groupId>junit</groupId><artifactId>junit</artifactId></dependency>
+        <dependency><groupId>org.mockito</groupId><artifactId>mockito-core</artifactId><version>${mockito.version}</version></dependency>
+        <dependency><groupId>com.google.gwt.gwtmockito</groupId><artifactId>gwtmockito</artifactId><version>1.1.6</version></dependency>
+    </dependencies>
+</project>

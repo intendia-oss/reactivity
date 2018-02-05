@@ -1,0 +1,15 @@
+<!DOCTYPE module PUBLIC "-//Google Inc.//DTD Google Web Toolkit 2.8.2//EN" "http://gwtproject.org/doctype/2.8.2/gwt-module.dtd">
+<module rename-to="app">
+    <inherits name="com.google.gwt.user.User"/>
+    <inherits name="com.google.gwt.user.theme.standard.Standard"/>
+    <inherits name="com.intendia.reactivity.Reactivity"/>
+    <inherits name="dagger.Dagger"/>
+
+    <entry-point class="sample.nested.client.Nested"/>
+
+    <set-configuration-property name="CssResource.enableGss" value="true" />
+    <collapse-all-properties/>
+
+    <source path="client"/>
+    <public path="public"/>
+</module>
