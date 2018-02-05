@@ -45,7 +45,7 @@ public class RouteTokenFormatterTest {
                 "!/crawl/{vanityId}",
                 "/privacy",
                 "/")
-                .<Proxy<?>>map(n -> new Proxy<>(() -> null, bus, new Place(n)))
+                .map(n -> new Place(n, () -> null))
                 .collect(Collectors.toSet()));
     }
 

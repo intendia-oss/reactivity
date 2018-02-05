@@ -32,7 +32,7 @@ public class PlaceManager implements HasHandlers {
     private final EventBus eventBus;
     private final TokenFormatter tokenFormatter;
     private final Historian historian;
-    private final Set<Proxy<? extends PresenterChild<?>>> places;
+    private final Set<Place> places;
     private final PlaceRequest defaultPlaceRequest;
     private final PlaceRequest errorPlaceRequest;
     private final PlaceRequest unauthorizedPlaceRequest;
@@ -51,7 +51,7 @@ public class PlaceManager implements HasHandlers {
             EventBus bus,
             TokenFormatter tokenFormatter,
             Historian historian,
-            Set<Proxy<? extends PresenterChild<?>>> places,
+            Set<Place> places,
             @DefaultPlace String pDefault,
             @ErrorPlace String pError,
             @UnauthorizedPlace String pUnauthorized
@@ -89,17 +89,13 @@ public class PlaceManager implements HasHandlers {
 
     /** Do not call this method directly, instead call {@link #revealPlace(PlaceRequest)} or a related method. */
     protected void doRevealPlace(PlaceRequest request, boolean updateBrowserUrl) {
-        Optional<Proxy<? extends PresenterChild<?>>> matches = places.stream()
-                .filter(proxy -> {
-                    //XXX makes sense a Proxy with a null place?
-                    Place place = proxy.getPlace();
-                    return place != null && place.matchesRequest(request);
-                })
+        Optional<Place> matches = places.stream()
+                .filter(place -> place.matchesRequest(request))
                 .findFirst();
         if (!matches.isPresent()) {
             unlock();
             error(tokenFormatter.toPlaceToken(place));
-        } else if (!requireNonNull(matches.get().getPlace()).canReveal(request)) {
+        } else if (!requireNonNull(matches.get()).canReveal(request)) {
             unlock();
             illegalAccess(tokenFormatter.toPlaceToken(place));
         } else {

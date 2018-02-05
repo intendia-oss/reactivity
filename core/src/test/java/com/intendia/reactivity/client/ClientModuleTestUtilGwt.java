@@ -16,13 +16,13 @@ import javax.inject.Singleton;
 @Module
 public abstract class ClientModuleTestUtilGwt {
     // install(new DefaultModule.Builder().defaultPlace("home").errorPlace("home").unauthorizedPlace("home").build());
-    @Binds @IntoSet abstract Proxy<? extends PresenterChild<?>> bindMainPresenterTestUtilGwt(MainPresenterTestUtilGwt.MyProxy o);
-    @Binds @IntoSet abstract Proxy<? extends PresenterChild<?>> bindAdminPresenterTestUtilGwt(AdminPresenterTestUtilGwt.MyProxy o);
+    @Binds @IntoSet abstract Place bindMainPresenterTestUtilGwt(MainPresenterTestUtilGwt.MyPlace o);
+    @Binds @IntoSet abstract Place bindAdminPresenterTestUtilGwt(AdminPresenterTestUtilGwt.MyPlace o);
     @Provides @Named("notice") static String provideNotice() { return "Hello"; }
 
     // default module
     @Provides @Singleton static EventBus provideEventBus() { return new SimpleEventBus(); }
-    @Provides @Singleton static PlaceManager providePlaceManager(EventBus bus, Set<Proxy<? extends PresenterChild<?>>> places) {
+    @Provides @Singleton static PlaceManager providePlaceManager(EventBus bus, Set<Place> places) {
         return new PlaceManager(bus, mock(ParameterTokenFormatter.class),
                 mock(PlaceHistoryHandler.Historian.class), places, "home", "home", "home") {};
     }

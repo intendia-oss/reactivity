@@ -42,38 +42,32 @@ public class PlaceManagerImplTest {
         @Provides static View provideView() { return mock(View.class); }
         @Provides @Singleton static TestScheduler provideTestScheduler() { return new TestScheduler(); }
 
-        @Binds @IntoSet Proxy<? extends PresenterChild<?>> bindBasicProxy(DummyProxyPlaceBasic o);
-        @Binds @IntoSet Proxy<? extends PresenterChild<?>> bindRedirectProxy(DummyProxyPlaceRedirect o);
-        @Binds @IntoSet Proxy<? extends PresenterChild<?>> bindRedirectNoHistoryProxy(
-                DummyProxyPlaceRedirectNoHistory o);
+        @Binds @IntoSet Place bindBasicProxy(BasicPalce o);
+        @Binds @IntoSet Place bindRedirectProxy(RedirectPlace o);
+        @Binds @IntoSet Place bindRedirectNoHistoryProxy(RedirectNoHistoryPlace o);
     }
 
     @Singleton @Component(modules = GatekeeperTest.MyModule.class) interface MyComponent {
         MembersInjector<PlaceManagerImplTest> injector();
     }
 
-    // @TestMockSingleton
-    static class DummyPresenterBasic extends PresenterChild<View> { //DummyProxyPlaceBasic
-        @Inject DummyPresenterBasic(View v, RootContentSlot root) { super(v, root); }
+    static class BasicPresenter extends PresenterChild<View> {
+        @Inject BasicPresenter(View v, RootContentSlot root) { super(v, root); }
         @Override public final boolean isVisible() { return super.isVisible(); }
     }
 
-    // @TestEagerSingleton
-    static class DummyProxyPlaceBasic extends Proxy<DummyPresenterBasic> {
-        @Inject DummyProxyPlaceBasic(Provider<DummyPresenterBasic> p, EventBus bus) {
-            super(p, bus, new Place("dummyNameTokenBasic"));
-        }
+    static class BasicPalce extends Place {
+        @Inject BasicPalce(Provider<BasicPresenter> p) { super("basic", p); }
     }
 
     /** This presenter automatically redirects in prepareFromRequest to PresenterBasic. */
-    // @TestEagerSingleton
-    static class DummyPresenterRedirect extends PresenterChild<View> { //DummyProxyPlaceBasic
+    static class RedirectPresenter extends PresenterChild<View> {
         private final PlaceManager placeManager;
         public PlaceRequest preparedRequest;
         public int prepareFromRequestCalls;
         public int revealInParentCalls;
 
-        @Inject DummyPresenterRedirect(RootContentSlot root, PlaceManager placeManager) {
+        @Inject RedirectPresenter(RootContentSlot root, PlaceManager placeManager) {
             super(mock(View.class), root);
             this.placeManager = placeManager;
         }
@@ -82,47 +76,41 @@ public class PlaceManagerImplTest {
             super.prepareFromRequest(request);
             ++prepareFromRequestCalls;
             preparedRequest = request;
-            placeManager.revealPlace(PlaceRequest.of("dummyNameTokenBasic").build());
+            placeManager.revealPlace(PlaceRequest.of("basic").build());
             return Completable.never();
         }
 
         @Override protected void revealInParent() { ++revealInParentCalls; }
     }
 
-    // @TestEagerSingleton
-    static class DummyProxyPlaceRedirect extends Proxy<DummyPresenterRedirect> {
-        @Inject DummyProxyPlaceRedirect(Provider<DummyPresenterRedirect> p, EventBus bus) {
-            super(p, bus, new Place("dummyNameTokenRedirect"));
-        }
+    static class RedirectPlace extends Place {
+        @Inject RedirectPlace(Provider<RedirectPresenter> p) { super("redirect", p);}
     }
 
-    // @TestEagerSingleton
-    static class DummyPresenterRedirectNoHistory extends PresenterChild<View> { //DummyProxyPlaceRedirectNoHistory
+    static class RedirectNoHistoryPresenter extends PresenterChild<View> {
         private final PlaceManager placeManager;
-        private static final String TOKEN = "dummyNameTokenRedirectNoHistory";
+        private static final String TOKEN = "redirectNoHistory";
 
-        @Inject DummyPresenterRedirectNoHistory(RootContentSlot root, PlaceManager placeManager) {
+        @Inject RedirectNoHistoryPresenter(RootContentSlot root, PlaceManager placeManager) {
             super(mock(View.class), root);
             this.placeManager = placeManager;
         }
 
         @Override public Completable prepareFromRequest(PlaceRequest request) {
             super.prepareFromRequest(request);
-            placeManager.revealPlace(PlaceRequest.of("dummyNameTokenBasic").build(), false);
+            placeManager.revealPlace(PlaceRequest.of("basic").build(), false);
             return Completable.never();
         }
 
         @Override protected void revealInParent() {}
     }
 
-    // @TestEagerSingleton
-    static class DummyProxyPlaceRedirectNoHistory extends Proxy<DummyPresenterRedirectNoHistory> {
-        @Inject DummyProxyPlaceRedirectNoHistory(Provider<DummyPresenterRedirectNoHistory> p, EventBus bus) {
-            super(p, bus, new Place(DummyPresenterRedirectNoHistory.TOKEN));
+    static class RedirectNoHistoryPlace extends Place {
+        @Inject RedirectNoHistoryPlace(Provider<RedirectNoHistoryPresenter> p) {
+            super(RedirectNoHistoryPresenter.TOKEN, p);
         }
     }
 
-    // @TestSingleton
     static class NavigationEventSpy implements NavigationHandler {
         int navCount;
         NavigationEvent lastEvent;
@@ -142,21 +130,21 @@ public class PlaceManagerImplTest {
     @Inject PlaceManagerWindowMethodsTestUtil gwtWindowMethods;
     @Inject NavigationEventSpy navigationHandler;
     @Inject EventBus eventBus;
-    @Inject DummyPresenterBasic presenterBasic;
-    @Inject DummyPresenterRedirect presenterRedirect;
+    @Inject BasicPresenter presenterBasic;
+    @Inject RedirectPresenter presenterRedirect;
 
     @Test public void placeManagerRevealPlaceStandard() {
         // Given
         eventBus.addHandler(NavigationEvent.TYPE, navigationHandler);
 
         // When
-        placeManager.revealPlace(PlaceRequest.of("dummyNameTokenBasic").with("dummyParam", "dummyValue").build());
+        placeManager.revealPlace(PlaceRequest.of("basic").with("dummyParam", "dummyValue").build());
 
         // Then
         PlaceRequest placeRequest = placeManager.getCurrentPlaceRequest();
         assertNotNull(placeRequest);
 
-        assertEquals("dummyNameTokenBasic", placeRequest.getNameToken());
+        assertEquals("basic", placeRequest.getNameToken());
         assertEquals(1, placeRequest.getParameterNames().size());
         assertEquals("dummyValue", placeRequest.getParameter("dummyParam", null));
 
@@ -167,7 +155,7 @@ public class PlaceManagerImplTest {
 
         assertEquals(1, navigationHandler.navCount);
         placeRequest = navigationHandler.lastEvent.getRequest();
-        assertEquals("dummyNameTokenBasic", placeRequest.getNameToken());
+        assertEquals("basic", placeRequest.getNameToken());
         assertEquals(1, placeRequest.getParameterNames().size());
         assertEquals("dummyValue", placeRequest.getParameter("dummyParam", null));
     }
@@ -178,7 +166,7 @@ public class PlaceManagerImplTest {
      */
     @Test public void placeManagerRevealPlaceRedirectInPrepareFromRequestNoHistory() {
         // Given
-        PlaceRequest placeRequest = PlaceRequest.of(DummyPresenterRedirectNoHistory.TOKEN).build();
+        PlaceRequest placeRequest = PlaceRequest.of(RedirectNoHistoryPresenter.TOKEN).build();
 
         // When
         placeManager.revealPlace(placeRequest);
@@ -187,7 +175,7 @@ public class PlaceManagerImplTest {
         verify(gwtWindowMethods, times(1)).setBrowserHistoryToken(any(String.class), eq(false));
 
         PlaceRequest finalPlaceRequest = placeManager.getCurrentPlaceRequest();
-        assertEquals("dummyNameTokenBasic", finalPlaceRequest.getNameToken());
+        assertEquals("basic", finalPlaceRequest.getNameToken());
     }
 
     @Test public void placeManagerRevealPlaceRedirectInPrepareFromRequest() {
@@ -201,7 +189,7 @@ public class PlaceManagerImplTest {
         PlaceRequest finalPlaceRequest = placeManager.getCurrentPlaceRequest();
         assertNotNull(finalPlaceRequest);
 
-        assertEquals("dummyNameTokenBasic", finalPlaceRequest.getNameToken());
+        assertEquals("basic", finalPlaceRequest.getNameToken());
         assertEquals(0, finalPlaceRequest.getParameterNames().size());
 
         assertEquals(1, presenterRedirect.prepareFromRequestCalls);

@@ -30,9 +30,9 @@ public class RouteTokenFormatter implements TokenFormatter {
     }
 
     private final UrlUtils urlUtils;
-    private final Set<Proxy<?>> places;
+    private final Set<Place> places;
 
-    @Inject RouteTokenFormatter(UrlUtils urlUtils, Set<Proxy<?>> places) {
+    @Inject RouteTokenFormatter(UrlUtils urlUtils, Set<Place> places) {
         this.urlUtils = urlUtils;
         this.places = places;
     }
@@ -106,7 +106,7 @@ public class RouteTokenFormatter implements TokenFormatter {
         assert placeToken.indexOf('?') == -1 : "No Query string expected here";
         String[] placeParts = placeToken.split("/");
         return places.stream()
-                .map(p -> matchRoute(p.getPlace().getNameToken(), placeParts))
+                .map(p -> matchRoute(p.getNameToken(), placeParts))
                 .filter(Objects::nonNull).collect(toCollection(TreeSet::new));
     }
 

@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.SimpleEventBus;
+import com.intendia.reactivity.client.Gatekeeper.Factory;
 import com.intendia.reactivity.client.RootPresenter.RootContentSlot;
 import dagger.Binds;
 import dagger.Component;
@@ -37,64 +38,48 @@ public class GatekeeperTest {
         @Provides static View provideView() { return mock(View.class); }
         @Provides @Singleton static TestScheduler provideTestScheduler() { return new TestScheduler(); }
 
-        @Binds @IntoSet Proxy<? extends PresenterChild<?>> bindHomeProxy(DummyProxyPlaceWithDenyGatekeeper o);
-        @Binds @IntoSet Proxy<? extends PresenterChild<?>> bindAboutUsProxy(DummyProxyPlaceWithGrantGatekeeper o);
-        @Binds @IntoSet Proxy<? extends PresenterChild<?>> bindContactProxy(DummyProxyPlaceDefault o);
+        @Binds @IntoSet Place bindHomeProxy(DenyPlace o);
+        @Binds @IntoSet Place bindAboutUsProxy(GrantPlace o);
+        @Binds @IntoSet Place bindContactProxy(DefaultPlace o);
 
-        @Binds @Named("DenyGatekeeper") Gatekeeper.Factory bindDenyGatekeeper(DenyGatekeeper o);
-        @Binds @Named("GrantGatekeeper") Gatekeeper.Factory bindGrantGatekeeper(GrantGatekeeper o);
+        @Binds @Named("deny") Factory bindDenyGatekeeper(DenyGatekeeper o);
+        @Binds @Named("grant") Factory bindGrantGatekeeper(GrantGatekeeper o);
     }
 
     @Singleton @Component(modules = MyModule.class) interface MyComponent {
         MembersInjector<GatekeeperTest> injector();
     }
 
-    //@formatter:off
-    //@TestMockSingleton
-     static class DummyPresenterWithDenyGatekeeper extends PresenterChild<View> { // DummyProxyPlaceWithDenyGatekeeper
-        @Inject DummyPresenterWithDenyGatekeeper(View v, RootContentSlot root) { super(v, root); }
-        @Override public final boolean isVisible() { return super.isVisible(); }
-    }
-    //@TestEagerSingleton
-    static class DummyProxyPlaceWithDenyGatekeeper extends Proxy<DummyPresenterWithDenyGatekeeper> {
-        @Inject DummyProxyPlaceWithDenyGatekeeper(Provider<DummyPresenterWithDenyGatekeeper> p, EventBus bus,
-                @Named("DenyGatekeeper") Gatekeeper.Factory g) {
-            super(p, bus, new Place("deny", g.create()));
-        }
+    static class DenyPresenter extends PresenterChild<View> {
+        @Inject DenyPresenter(View v, RootContentSlot root) { super(v, root); }
     }
 
-    //@TestMockSingleton
-     static class DummyPresenterWithGrantGatekeeper extends PresenterChild<View> { //DummyProxyPlaceWithGrantGatekeeper
-        @Inject DummyPresenterWithGrantGatekeeper(View v, RootContentSlot root) { super(v, root); }
-        @Override public final boolean isVisible() { return super.isVisible(); }
-    }
-    //@TestEagerSingleton
-    static class DummyProxyPlaceWithGrantGatekeeper extends Proxy<DummyPresenterWithGrantGatekeeper> {
-        @Inject DummyProxyPlaceWithGrantGatekeeper(Provider<DummyPresenterWithGrantGatekeeper> p, EventBus bus,
-                @Named("GrantGatekeeper") Gatekeeper.Factory g) {
-            super(p, bus, new Place("grant", g.create()));
-        }
+    static class DenyPlace extends Place {
+        @Inject DenyPlace(Provider<DenyPresenter> p, @Named("deny") Factory g) { super("deny", p, g.create()); }
     }
 
-    //@TestMockSingleton
-    static class DummyPresenterDefault extends PresenterChild<View> { //DummyProxyPlaceDefault
-        @Inject DummyPresenterDefault(View v, RootContentSlot root) { super(v, root); }
-        @Override public final boolean isVisible() { return super.isVisible(); }
+    static class GrantPresenter extends PresenterChild<View> {
+        @Inject GrantPresenter(View v, RootContentSlot root) { super(v, root); }
     }
-    //@TestEagerSingleton
-    static class DummyProxyPlaceDefault extends  Proxy<DummyPresenterDefault> {
-        @Inject DummyProxyPlaceDefault(Provider<DummyPresenterDefault> p, EventBus bus) {
-            super(p, bus, new Place("defaultPlace"));
-        }
-    }
-    //@formatter:on
 
-    static class DenyGatekeeper implements Gatekeeper.Factory {
+    static class GrantPlace extends Place {
+        @Inject GrantPlace(Provider<GrantPresenter> p, @Named("grant") Factory g) { super("grant", p, g.create()); }
+    }
+
+    static class DefaultPresenter extends PresenterChild<View> {
+        @Inject DefaultPresenter(View v, RootContentSlot root) { super(v, root); }
+    }
+
+    static class DefaultPlace extends Place {
+        @Inject DefaultPlace(Provider<DefaultPresenter> p) { super("defaultPlace", p); }
+    }
+
+    static class DenyGatekeeper implements Factory {
         @Inject public DenyGatekeeper() {}
         @Override public Gatekeeper create(String... params) { return request -> false; }
     }
 
-    static class GrantGatekeeper implements Gatekeeper.Factory {
+    static class GrantGatekeeper implements Factory {
         @Inject public GrantGatekeeper() {}
         @Override public Gatekeeper create(String... params) { return request -> true; }
     }
@@ -106,8 +91,8 @@ public class GatekeeperTest {
     // SUT
     @Inject PlaceManager placeManager;
     @Inject TestScheduler deferredCommandManager;
-    @Inject DummyPresenterDefault defaultPresenter;
-    @Inject DummyPresenterWithGrantGatekeeper presenterWithGatekeeper;
+    @Inject DefaultPresenter defaultPresenter;
+    @Inject GrantPresenter presenterWithGatekeeper;
 
     @Test public void place_manager_reveal_default_place_when_gatekeeper_can_not_reveal() {
         // Given

@@ -11,7 +11,6 @@ import com.intendia.reactivity.client.CompositeView;
 import com.intendia.reactivity.client.Place;
 import com.intendia.reactivity.client.PlaceManager;
 import com.intendia.reactivity.client.PresenterChild;
-import com.intendia.reactivity.client.Proxy;
 import com.intendia.reactivity.client.View;
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -22,15 +21,16 @@ import sample.nested.client.application.ApplicationPresenter.MainContent;
 @Singleton
 public class ContactPresenter extends PresenterChild<ContactPresenter.MyView> {
 
-    public static class MyProxy extends Proxy<ContactPresenter> {
-        @Inject MyProxy(Provider<ContactPresenter> p, EventBus bus) {
-            super(p, bus, new Place(NameTokens.contactPage));
-            bus.addHandler(PlaceManager.NavigationEvent.TYPE, event -> getPresenter().subscribe(ready -> {
+    public static @Singleton class MyPlace extends Place {
+        @Inject MyPlace(Provider<ContactPresenter> p, EventBus bus) {
+            super(NameTokens.contactPage, p);
+            bus.addHandler(PlaceManager.NavigationEvent.TYPE, event -> {
+                ContactPresenter ready = p.get();
                 // We keep track of the previously visited pages
                 if (ready.navigationHistory.length() > 0) ready.navigationHistory += ", ";
                 ready.navigationHistory += event.getRequest().getNameToken();
                 ready.getView().setNavigationHistory(ready.navigationHistory);
-            }));
+            });
         }
     }
 

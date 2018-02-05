@@ -1,34 +1,32 @@
-package com.intendia.reactivity.client;
+package sample.nested.client;
 
-import com.google.gwt.core.client.GWT;
-import com.google.gwt.core.client.RunAsyncCallback;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
 import com.google.web.bindery.event.shared.EventBus;
 import io.reactivex.Single;
-import javax.inject.Provider;
 
-public class Proxy<P extends PresenterWidget<?>> {
-    protected final Single<P> presenter;
-    protected final Place place;
-
-    public Proxy(Provider<P> p, EventBus bus, Place place) {
-        this.presenter = Single
-                .<P>create(source -> GWT.runAsync(new RunAsyncCallback() {
-                    @Override public void onFailure(Throwable reason) { source.onError(reason); }
-                    @Override public void onSuccess() { source.onSuccess(p.get()); }
-                }))
-                .doOnSubscribe(s -> bus.fireEvent(new AsyncCallStartEvent()))
-                .doOnSuccess(n -> bus.fireEvent(new AsyncCallSucceedEvent()))
-                .doOnError(ex -> bus.fireEvent(new AsyncCallFailEvent(ex)))
-                .cache();
-        this.place = place;
+public interface AsyncLoader {
+    static <P> Single<P> asSingle(ListenableFuture<P> p, EventBus bus) {
+        return Single.<P>create(em -> {
+            bus.fireEvent(new AsyncCallStartEvent());
+            Futures.addCallback(p, new FutureCallback<P>() {
+                @Override public void onSuccess(P result) {
+                    bus.fireEvent(new AsyncCallSucceedEvent());
+                    em.onSuccess(result);
+                }
+                @Override public void onFailure(Throwable ex) {
+                    bus.fireEvent(new AsyncCallFailEvent(ex));
+                    em.onError(ex);
+                }
+            }, MoreExecutors.directExecutor());
+        }).cache();
     }
 
-    public Place getPlace() { return place; }
-    public Single<P> getPresenter() { return presenter; }
-
-    public static class AsyncCallFailEvent extends GwtEvent<Proxy.AsyncCallFailEvent.AsyncCallFailHandler> {
+    class AsyncCallFailEvent extends GwtEvent<AsyncCallFailEvent.AsyncCallFailHandler> {
         public static final Type<AsyncCallFailHandler> TYPE = new Type<>();
         private final Throwable caught;
         AsyncCallFailEvent(Throwable caught) { this.caught = caught; }
@@ -40,7 +38,7 @@ public class Proxy<P extends PresenterWidget<?>> {
         }
     }
 
-    public static class AsyncCallStartEvent extends GwtEvent<Proxy.AsyncCallStartEvent.AsyncCallStartHandler> {
+    class AsyncCallStartEvent extends GwtEvent<AsyncCallStartEvent.AsyncCallStartHandler> {
         public static final Type<AsyncCallStartHandler> TYPE = new Type<>();
         AsyncCallStartEvent() {}
         @Override public Type<AsyncCallStartHandler> getAssociatedType() { return TYPE; }
@@ -50,7 +48,7 @@ public class Proxy<P extends PresenterWidget<?>> {
         }
     }
 
-    public static class AsyncCallSucceedEvent extends GwtEvent<Proxy.AsyncCallSucceedEvent.AsyncCallSucceedHandler> {
+    class AsyncCallSucceedEvent extends GwtEvent<AsyncCallSucceedEvent.AsyncCallSucceedHandler> {
         public static final Type<AsyncCallSucceedHandler> TYPE = new Type<>();
         AsyncCallSucceedEvent() {}
         @Override public Type<AsyncCallSucceedHandler> getAssociatedType() { return TYPE; }

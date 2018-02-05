@@ -52,10 +52,10 @@ public interface Slots {
      * PopupPresenter when appropriate.
      */
     class PopupSlot<T extends PresenterWidget<? extends PopupView>> extends MultiSlot<T> implements RevealableSlot<T> {
-        protected final Proxy<? extends PresenterWidget<?>> proxy;
-        protected PopupSlot(Proxy<? extends PresenterWidget<?>> proxy) { this.proxy = proxy; }
+        protected final Single<? extends PresenterWidget<?>> proxy;
+        protected PopupSlot(Single<? extends PresenterWidget<?>> proxy) { this.proxy = proxy; }
         @Override public void reveal(T presenter) {
-            proxy.getPresenter().subscribe(p -> {
+            proxy.subscribe(p -> {
                 if (p instanceof PresenterChild) ((PresenterChild) p).forceReveal();
                 p.addToPopupSlot(presenter);
             });

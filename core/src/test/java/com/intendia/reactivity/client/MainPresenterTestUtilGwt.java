@@ -1,7 +1,6 @@
 package com.intendia.reactivity.client;
 
 import com.google.gwt.user.client.ui.FlowPanel;
-import com.google.web.bindery.event.shared.EventBus;
 import com.intendia.reactivity.client.MainPresenterTestUtilGwt.MyView;
 import com.intendia.reactivity.client.RootPresenter.RootContentSlot;
 import javax.inject.Inject;
@@ -13,10 +12,8 @@ public class MainPresenterTestUtilGwt extends PresenterChild<MyView> {
         @Inject MyView() { initWidget(new FlowPanel()); }
     }
 
-    static class MyProxy extends Proxy<MainPresenterTestUtilGwt> {
-        @Inject MyProxy(Provider<MainPresenterTestUtilGwt> p, EventBus bus) {
-            super(p, bus, new Place("home"));
-        }
+    static class MyPlace extends Place {
+        @Inject MyPlace(Provider<MainPresenterTestUtilGwt> p) { super("home", p); }
     }
 
     private final Provider<PopupPresenterTestUtilGwt> popup;
