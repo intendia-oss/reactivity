@@ -17,16 +17,13 @@ public class Place {
         this.gatekeeper = gatekeeper;
     }
 
-    public boolean canReveal(PlaceRequest request) { return gatekeeper.canReveal(request); }
     public String getNameToken() { return nameToken; }
+    public boolean matchesRequest(PlaceRequest request) { return request.matchesNameToken(nameToken); }
+    public boolean canReveal(PlaceRequest request) { return gatekeeper.canReveal(request); }
     public Single<? extends PresenterChild<?>> getPresenter() { return presenter; }
-    public final boolean matchesRequest(PlaceRequest request) { return request.matchesNameToken(nameToken); }
 
-    @Override public final boolean equals(Object o) {
-        if (!(o instanceof Place)) return false;
-        Place place = (Place) o;
-        return nameToken.equals(place.getNameToken()) || getNameToken().equals(place.getNameToken());
-    }
+    @Override public final boolean equals(Object o) { return o instanceof Place && equals((Place) o); }
+    private boolean equals(Place o) { return nameToken.equals(o.nameToken) || nameToken.equals(o.nameToken); }
     @Override public final int hashCode() { return 17 * nameToken.hashCode(); }
-    @Override public final String toString() { return getNameToken(); }
+    @Override public final String toString() { return nameToken; }
 }
