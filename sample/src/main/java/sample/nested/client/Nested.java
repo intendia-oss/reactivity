@@ -9,7 +9,7 @@ import sample.nested.client.resources.Resources;
 public class Nested implements EntryPoint {
     @Override public void onModuleLoad() {
         Resources.inject();
-        DaggerNested_ClientComponent.create().placeManager().revealDefaultPlace();
+        DaggerNested_ClientComponent.create().placeManager().revealCurrentPlace();
     }
 
     @Singleton @Component(modules = ClientModule.class) interface ClientComponent {
