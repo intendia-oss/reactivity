@@ -1,5 +1,6 @@
 package com.intendia.reactivity.client;
 
+import static io.reactivex.Completable.fromAction;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static java.util.Objects.requireNonNull;
 
@@ -99,22 +100,25 @@ public class PlaceManager implements HasHandlers {
             unlock();
             illegalAccess(tokenFormatter.toPlaceToken(place));
         } else {
-            matches.get().getPresenter().flatMapCompletable(p -> {
-                PlaceRequest originalRequest = getCurrentPlaceRequest();
-                return p.prepareFromRequest(request).andThen(Completable.fromAction(() -> {
-                    // User did not manually update place request in prepareFromRequest, update it here.
-                    if (originalRequest == getCurrentPlaceRequest()) updateHistory(request, updateBrowserUrl);
+            matches.get().getPresenter()
+                    .flatMapCompletable(p -> {
+                        PlaceRequest originalRequest = getCurrentPlaceRequest();
+                        return p.prepareFromRequest(request).andThen(Completable.defer(() -> {
+                            // User did not manually update place request in prepareFromRequest, update it here.
+                            if (originalRequest == getCurrentPlaceRequest()) updateHistory(request, updateBrowserUrl);
 
-                    fireEvent(new NavigationEvent(request));
+                            fireEvent(new NavigationEvent(request));
 
-                    // Reveal only if there are no pending navigation requests
-                    if (!hasPendingNavigation()) {
-                        if (!p.isVisible()) p.forceReveal(); // This will trigger a reset in due time
-                        else p.performReset(); // We have to do the reset ourselves
-                    }
-                    unlock();
-                }));
-            }).doOnError(ex -> unlock() /*prevents UI "freeze" caused by LockInteractionEvent*/).subscribe();
+                            // Reveal only if there are no pending navigation requests
+                            if (hasPendingNavigation()) return Completable.complete();
+
+                            if (!p.isVisible()) return p.forceReveal(); // This will trigger a reset in due time
+                            else return fromAction(() -> p.performReset()); // We have to do the reset ourselves
+                        }));
+                    })
+                    /*prevents UI "freeze" caused by LockInteractionEvent*/
+                    .doOnTerminate(this::unlock).doOnError(ex -> unlock())
+                    .subscribe(); //XXX eliminate all subscribe calls!
         }
     }
 

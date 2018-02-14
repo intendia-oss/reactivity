@@ -1,5 +1,8 @@
 package com.intendia.reactivity.client;
 
+import static io.reactivex.Completable.complete;
+
+import io.reactivex.Completable;
 import io.reactivex.Single;
 
 public interface Slots {
@@ -20,17 +23,17 @@ public interface Slots {
 
     /** A slot that can reveal a child presenter. */
     interface RevealableSlot<T extends PresenterWidget<?>> extends IsSingleSlot<T> {
-        void reveal(T presenter);
+        Completable reveal(T presenter);
     }
 
     /** Use NestedSlot in classes extending {@link PresenterChild} to automatically display child presenters. */
     abstract class NestedSlot<T extends PresenterWidget<?>> implements RevealableSlot<T>, RemovableSlot<T> {
         protected final Single<? extends PresenterWidget<?>> proxy;
         protected NestedSlot(Single<? extends PresenterWidget<?>> proxy) { this.proxy = proxy; }
-        @Override public void reveal(T presenter) {
-            proxy.subscribe(p -> {
-                if (p instanceof PresenterChild) ((PresenterChild) p).forceReveal();
-                p.setInSlot(this, presenter);
+        @Override public Completable reveal(T presenter) {
+            return proxy.flatMapCompletable(p -> {
+                Completable reveal = p instanceof PresenterChild ? ((PresenterChild) p).forceReveal() : complete();
+                return reveal.andThen(Completable.fromAction(() -> p.setInSlot(this, presenter)));
             });
         }
     }
@@ -54,10 +57,10 @@ public interface Slots {
     class PopupSlot<T extends PresenterWidget<? extends PopupView>> extends MultiSlot<T> implements RevealableSlot<T> {
         protected final Single<? extends PresenterWidget<?>> proxy;
         protected PopupSlot(Single<? extends PresenterWidget<?>> proxy) { this.proxy = proxy; }
-        @Override public void reveal(T presenter) {
-            proxy.subscribe(p -> {
-                if (p instanceof PresenterChild) ((PresenterChild) p).forceReveal();
-                p.addToPopupSlot(presenter);
+        @Override public Completable reveal(T presenter) {
+            return proxy.flatMapCompletable(p -> {
+                Completable reveal = p instanceof PresenterChild ? ((PresenterChild) p).forceReveal() : complete();
+                return reveal.andThen(Completable.fromAction(() -> p.addToPopupSlot(presenter)));
             });
         }
     }

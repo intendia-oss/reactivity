@@ -11,6 +11,7 @@ import com.intendia.reactivity.client.PlaceManager.LockInteractionEvent;
 import com.intendia.reactivity.client.Slots.IsSlot;
 import com.intendia.reactivity.client.Slots.RevealableSlot;
 import dagger.Lazy;
+import io.reactivex.Completable;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -52,13 +53,17 @@ public class RootPresenter extends PresenterWidget<RootPresenter.RootView> {
     public static @Singleton class RootContentSlot implements RevealableSlot<PresenterWidget<?>> {
         private final Lazy<RootPresenter> root;
         @Inject RootContentSlot(Lazy<RootPresenter> root) { this.root = root; }
-        @Override public void reveal(PresenterWidget<?> presenter) { root.get().setInSlot(this, presenter); }
+        @Override public Completable reveal(PresenterWidget<?> presenter) {
+            return Completable.fromAction(() -> root.get().setInSlot(this, presenter));
+        }
     }
 
     public static @Singleton class RootPopupSlot implements RevealableSlot<PresenterWidget<PopupView>> {
         private final Lazy<RootPresenter> root;
         @Inject RootPopupSlot(Lazy<RootPresenter> root) { this.root = root; }
-        @Override public void reveal(PresenterWidget<PopupView> presenter) { root.get().addToPopupSlot(presenter); }
+        @Override public Completable reveal(PresenterWidget<PopupView> presenter) {
+            return Completable.fromAction(() -> root.get().addToPopupSlot(presenter));
+        }
     }
 
     @Inject public RootPresenter(RootView view, EventBus bus) {

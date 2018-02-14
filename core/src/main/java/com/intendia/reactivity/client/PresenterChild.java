@@ -1,5 +1,7 @@
 package com.intendia.reactivity.client;
 
+import static io.reactivex.Completable.complete;
+
 import com.intendia.reactivity.client.Slots.RevealableSlot;
 import io.reactivex.Completable;
 import javax.inject.Singleton;
@@ -13,11 +15,15 @@ public abstract class PresenterChild<V extends View> extends PresenterWidget<V> 
         this.parentSlot = parentSlot;
     }
 
-    //TODO forceReveal/revealInParent should by async (returns RX)? it is possible that parent slot.reveal
-    //end up calling a lazy loader of a code-split presenter, so this might actually force async flow
-    public final void forceReveal() { if (!isVisible()) revealInParent(); }
+    public final Completable forceReveal() {
+        return Completable.defer(() -> !isVisible() ? revealInParent() : complete());
+    }
 
-    protected void revealInParent() { if (parentSlot != null) parentSlot.reveal(this); }
+    protected Completable revealInParent() {
+        return parentSlot.reveal(this);
+    }
 
-    public Completable prepareFromRequest(PlaceRequest request) { return Completable.complete(); }
+    public Completable prepareFromRequest(PlaceRequest request) {
+        return complete();
+    }
 }

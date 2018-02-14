@@ -53,7 +53,6 @@ public class ApplicationPresenter extends PresenterChild<ApplicationPresenter.My
         }
     }
 
-    /** Use this in leaf presenters, inside their {@link #revealInParent} method. */
     public static @Singleton class MainContent extends NestedSlot<PresenterWidget<?>> {
         @Inject MainContent(Lazy<ApplicationPresenter> presenter) { super(Single.fromCallable(presenter::get)); }
     }

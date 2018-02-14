@@ -109,6 +109,7 @@ public abstract class PresenterWidget<V extends View> implements IsWidget {
         return result;
     }
 
+    /** @deprecated  */
     protected void onReveal() {}
 
     @VisibleForTesting void internalReveal() {
@@ -125,18 +126,17 @@ public abstract class PresenterWidget<V extends View> implements IsWidget {
         }
     }
 
+    /** @deprecated  */
     protected void onReset() {}
 
     public void performReset() {
         if (!isVisible()) return;
         if (parent != null) {
             parent.performReset();
-        } else {
-            if (!isResetting) {
-                isResetting = true;
-                internalReset();
-                isResetting = false;
-            }
+        } else if (!isResetting) {
+            isResetting = true;
+            internalReset();
+            isResetting = false;
         }
     }
 
@@ -147,6 +147,7 @@ public abstract class PresenterWidget<V extends View> implements IsWidget {
         if (isPopup()) ((PopupView) getView()).show();
     }
 
+    /** @deprecated  */
     protected void onHide() {}
 
     void internalHide() {
