@@ -5,7 +5,7 @@
     <inherits name="com.intendia.reactivity.Reactivity"/>
     <inherits name="dagger.Dagger"/>
 
-    <entry-point class="sample.nested.client.Nested"/>
+    <entry-point class="sample.nested.client.SampleEntryPoint"/>
 
     <set-configuration-property name="CssResource.enableGss" value="true" />
     <collapse-all-properties/>

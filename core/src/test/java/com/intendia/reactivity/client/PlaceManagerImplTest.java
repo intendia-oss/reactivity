@@ -57,7 +57,7 @@ public class PlaceManagerImplTest {
     }
 
     static class BasicPalce extends Place {
-        @Inject BasicPalce(Provider<BasicPresenter> p) { super("basic", p); }
+        @Inject BasicPalce(Provider<BasicPresenter> p) { super("basic", asSingle(p)); }
     }
 
     /** This presenter automatically redirects in prepareFromRequest to PresenterBasic. */
@@ -84,7 +84,7 @@ public class PlaceManagerImplTest {
     }
 
     static class RedirectPlace extends Place {
-        @Inject RedirectPlace(Provider<RedirectPresenter> p) { super("redirect", p);}
+        @Inject RedirectPlace(Provider<RedirectPresenter> p) { super("redirect", asSingle(p));}
     }
 
     static class RedirectNoHistoryPresenter extends PresenterChild<View> {
@@ -107,7 +107,7 @@ public class PlaceManagerImplTest {
 
     static class RedirectNoHistoryPlace extends Place {
         @Inject RedirectNoHistoryPlace(Provider<RedirectNoHistoryPresenter> p) {
-            super(RedirectNoHistoryPresenter.TOKEN, p);
+            super(RedirectNoHistoryPresenter.TOKEN, asSingle(p));
         }
     }
 

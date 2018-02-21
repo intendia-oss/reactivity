@@ -14,7 +14,7 @@ public @Singleton class AdminPresenterTestUtilGwt extends PresenterChild<MyView>
     }
 
     static @Singleton class MyPlace extends Place {
-        @Inject MyPlace(Provider<AdminPresenterTestUtilGwt> p) { super("admin", p); }
+        @Inject MyPlace(Provider<AdminPresenterTestUtilGwt> p) { super("admin", asSingle(p)); }
     }
 
     @Inject AdminPresenterTestUtilGwt(MyView view, RootContentSlot root) { super(view, root); }

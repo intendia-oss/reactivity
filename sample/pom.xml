@@ -18,16 +18,25 @@
                 <configuration>
                     <moduleName>sample.nested.Sample</moduleName>
                     <skipModule>true</skipModule>
+                    <compilerArgs>
+                        <!-- Generate split point and compile metrics reports -->
+                        <arg>-compileReport</arg>
+                        <arg>-XcompilerMetrics</arg>
+                        <arg>-style</arg>
+                        <arg>PRETTY</arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
         </plugins>
     </build>
 
     <dependencies><!--@formatter:off-->
-        <dependency><groupId>com.intendia.gwt.reactivity</groupId><artifactId>reactivity-core</artifactId><type>gwt-lib</type><version>${project.version}</version></dependency>
         <dependency><groupId>com.google.gwt</groupId><artifactId>gwt-user</artifactId></dependency>
         <dependency><groupId>com.google.gwt</groupId><artifactId>gwt-servlet</artifactId></dependency>
         <dependency><groupId>com.google.dagger</groupId><artifactId>dagger-compiler</artifactId><version>2.13</version><scope>provided</scope></dependency>
+        <dependency><groupId>com.intendia.gwt.reactivity</groupId><artifactId>reactivity-core</artifactId><type>gwt-lib</type><version>${project.version}</version></dependency>
+
+        <!-- Test dependencies -->
         <dependency><groupId>junit</groupId><artifactId>junit</artifactId></dependency>
     </dependencies><!--@formatter:on-->
 </project>

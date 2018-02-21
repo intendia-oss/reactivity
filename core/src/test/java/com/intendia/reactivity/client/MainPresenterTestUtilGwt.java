@@ -13,7 +13,7 @@ public class MainPresenterTestUtilGwt extends PresenterChild<MyView> {
     }
 
     static class MyPlace extends Place {
-        @Inject MyPlace(Provider<MainPresenterTestUtilGwt> p) { super("home", p); }
+        @Inject MyPlace(Provider<MainPresenterTestUtilGwt> p) { super("home", asSingle(p)); }
     }
 
     private final Provider<PopupPresenterTestUtilGwt> popup;

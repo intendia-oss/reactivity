@@ -58,7 +58,7 @@ public class ApplicationPresenter extends PresenterChild<ApplicationPresenter.My
     }
 
     @Inject ApplicationPresenter(MyView view, RootContentSlot root, EventBus bus) {
-        super(view, root);
+        super(view, root); view.showLoading(false);
         bus.addHandler(PlaceManager.LockInteractionEvent.TYPE, e -> getView().showLoading(e.shouldLock()));
     }
 }

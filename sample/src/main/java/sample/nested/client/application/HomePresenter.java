@@ -6,17 +6,19 @@ import com.google.gwt.uibinder.client.UiTemplate;
 import com.google.gwt.user.client.ui.Widget;
 import com.intendia.reactivity.client.CompositeView;
 import com.intendia.reactivity.client.Place;
+import com.intendia.reactivity.client.PlaceRequest;
 import com.intendia.reactivity.client.PresenterChild;
+import io.reactivex.Single;
 import javax.inject.Inject;
-import javax.inject.Provider;
-import javax.inject.Singleton;
 import sample.nested.client.NameTokens;
+import sample.nested.client.SampleEntryPoint.ClientModule.Presenters;
 
-@Singleton
 public class HomePresenter extends PresenterChild<HomePresenter.MyView> {
 
     public static class MyPlace extends Place {
-        @Inject MyPlace(Provider<HomePresenter> p) { super(NameTokens.homePage, p); }
+        @Inject MyPlace(Single<Presenters> p) {
+            super(NameTokens.homePage, p.map(Presenters::home), (PlaceRequest request) -> true);
+        }
     }
 
     public static class MyView extends CompositeView {

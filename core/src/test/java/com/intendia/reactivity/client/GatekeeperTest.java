@@ -55,7 +55,7 @@ public class GatekeeperTest {
     }
 
     static class DenyPlace extends Place {
-        @Inject DenyPlace(Provider<DenyPresenter> p, @Named("deny") Factory g) { super("deny", p, g.create()); }
+        @Inject DenyPlace(Provider<DenyPresenter> p, @Named("deny") Factory g) { super("deny", asSingle(p), g.create()); }
     }
 
     static class GrantPresenter extends PresenterChild<View> {
@@ -63,7 +63,8 @@ public class GatekeeperTest {
     }
 
     static class GrantPlace extends Place {
-        @Inject GrantPlace(Provider<GrantPresenter> p, @Named("grant") Factory g) { super("grant", p, g.create()); }
+        @Inject GrantPlace(Provider<GrantPresenter> p, @Named("grant") Factory g) { super("grant", asSingle(p),
+                g.create()); }
     }
 
     static class DefaultPresenter extends PresenterChild<View> {
@@ -71,7 +72,7 @@ public class GatekeeperTest {
     }
 
     static class DefaultPlace extends Place {
-        @Inject DefaultPlace(Provider<DefaultPresenter> p) { super("defaultPlace", p); }
+        @Inject DefaultPlace(Provider<DefaultPresenter> p) { super("defaultPlace", asSingle(p)); }
     }
 
     static class DenyGatekeeper implements Factory {

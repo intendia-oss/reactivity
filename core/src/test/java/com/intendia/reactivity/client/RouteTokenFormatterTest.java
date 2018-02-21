@@ -45,7 +45,7 @@ public class RouteTokenFormatterTest {
                 "!/crawl/{vanityId}",
                 "/privacy",
                 "/")
-                .map(n -> new Place(n, () -> null))
+                .map(n -> new Place(n, Place.asSingle(() -> null)))
                 .collect(Collectors.toSet()));
     }
 

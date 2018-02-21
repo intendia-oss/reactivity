@@ -8,12 +8,13 @@ public class Place {
     private final Single<? extends PresenterChild<?>> presenter;
     private final Gatekeeper gatekeeper;
 
-    public Place(String nameTokens, Provider<? extends PresenterChild<?>> presenter) {
+    public Place(String nameTokens, Single<? extends PresenterChild<?>> presenter) {
         this(nameTokens, presenter, (PlaceRequest request) -> true);
     }
-    public Place(String nameToken, Provider<? extends PresenterChild<?>> presenter,  Gatekeeper gatekeeper) {
+
+    public Place(String nameToken, Single<? extends PresenterChild<?>> presenter, Gatekeeper gatekeeper) {
         this.nameToken = nameToken;
-        this.presenter = Single.fromCallable(presenter::get);
+        this.presenter = presenter;
         this.gatekeeper = gatekeeper;
     }
 
@@ -26,4 +27,8 @@ public class Place {
     private boolean equals(Place o) { return nameToken.equals(o.nameToken) || nameToken.equals(o.nameToken); }
     @Override public final int hashCode() { return 17 * nameToken.hashCode(); }
     @Override public final String toString() { return nameToken; }
+
+    public static <T> Single<T> asSingle(Provider<T> presenter) {
+        return Single.fromCallable(presenter::get);
+    }
 }
