@@ -3,7 +3,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.intendia.gwt.reactivity</groupId>
+        <groupId>com.intendia.reactivity</groupId>
         <artifactId>reactivity-parent</artifactId>
         <version>HEAD-SNAPSHOT</version>
     </parent>
@@ -27,6 +27,12 @@
                     </compilerArgs>
                 </configuration>
             </plugin>
+            <plugin>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
@@ -34,7 +40,7 @@
         <dependency><groupId>com.google.gwt</groupId><artifactId>gwt-user</artifactId></dependency>
         <dependency><groupId>com.google.gwt</groupId><artifactId>gwt-servlet</artifactId></dependency>
         <dependency><groupId>com.google.dagger</groupId><artifactId>dagger-compiler</artifactId><version>2.13</version><scope>provided</scope></dependency>
-        <dependency><groupId>com.intendia.gwt.reactivity</groupId><artifactId>reactivity-core</artifactId><type>gwt-lib</type><version>${project.version}</version></dependency>
+        <dependency><groupId>com.intendia.reactivity</groupId><artifactId>reactivity-core</artifactId><type>gwt-lib</type><version>${project.version}</version></dependency>
 
         <!-- Test dependencies -->
         <dependency><groupId>junit</groupId><artifactId>junit</artifactId></dependency>
