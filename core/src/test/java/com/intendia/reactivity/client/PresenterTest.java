@@ -26,7 +26,7 @@ public class PresenterTest {
         TestPresenter presenter = new TestPresenter();
         assertFalse(presenter.isVisible());
         // When
-        presenter.forceReveal();
+        presenter.forceReveal().blockingAwait();
         // Then
         assertEquals(1, presenter.revealInParentCalled);
     }
@@ -37,7 +37,7 @@ public class PresenterTest {
         presenter.internalReveal();
         assertTrue(presenter.isVisible());
         // When
-        presenter.forceReveal();
+        presenter.forceReveal().blockingAwait();
         // Then
         assertEquals(0, presenter.revealInParentCalled);
     }
