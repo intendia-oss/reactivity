@@ -23,7 +23,7 @@
     </build>
 
     <dependencies>
-        <dependency><groupId>com.google.dagger</groupId><artifactId>dagger-gwt</artifactId><version>2.13</version></dependency>
+        <dependency><groupId>com.google.dagger</groupId><artifactId>dagger-gwt</artifactId><version>${dagger.version}</version></dependency>
         <dependency><groupId>com.google.guava</groupId><artifactId>guava</artifactId></dependency>
         <dependency><groupId>com.google.guava</groupId><artifactId>guava-gwt</artifactId><version>${guava.version}</version></dependency>
         <dependency><groupId>com.google.gwt</groupId><artifactId>gwt-user</artifactId><scope>provided</scope></dependency>
@@ -32,7 +32,7 @@
         <dependency><groupId>com.intendia.gwt.rxgwt2</groupId><artifactId>rxgwt</artifactId><version>2.1</version></dependency>
 
         <!-- Annotation processor -->
-        <dependency><groupId>com.google.dagger</groupId><artifactId>dagger-compiler</artifactId><version>2.13</version><scope>provided</scope></dependency>
+        <dependency><groupId>com.google.dagger</groupId><artifactId>dagger-compiler</artifactId><version>${dagger.version}</version><scope>provided</scope></dependency>
 
         <!-- Test dependencies -->
         <dependency><groupId>com.google.gwt.gwtmockito</groupId><artifactId>gwtmockito</artifactId><version>1.1.6</version></dependency>
