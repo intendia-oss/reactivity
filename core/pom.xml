@@ -29,7 +29,7 @@
         <dependency><groupId>com.google.gwt</groupId><artifactId>gwt-user</artifactId><scope>provided</scope></dependency>
         <dependency><groupId>com.google.gwt</groupId><artifactId>gwt-dev</artifactId><scope>provided</scope></dependency>
         <dependency><groupId>com.intendia.gwt</groupId><artifactId>rxjava2-gwt</artifactId><version>2.1.2-beta1</version></dependency>
-        <dependency><groupId>com.intendia.gwt.rxgwt2</groupId><artifactId>rxgwt</artifactId><version>2.1</version></dependency>
+        <dependency><groupId>com.intendia.gwt.rxgwt2</groupId><artifactId>rxgwt</artifactId><version>2.2</version></dependency>
 
         <!-- Annotation processor -->
         <dependency><groupId>com.google.dagger</groupId><artifactId>dagger-compiler</artifactId><version>${dagger.version}</version><scope>provided</scope></dependency>

@@ -1,8 +1,11 @@
 package com.intendia.reactivity.client;
 
+import static com.google.gwt.core.client.GWT.log;
+import static com.intendia.rxgwt2.client.RxGwt.retryDelay;
 import static java.util.Objects.requireNonNull;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
 import com.intendia.reactivity.client.Slots.IsSingleSlot;
@@ -11,10 +14,16 @@ import com.intendia.reactivity.client.Slots.MultiSlot;
 import com.intendia.reactivity.client.Slots.OrderedSlot;
 import com.intendia.reactivity.client.Slots.PopupSlot;
 import com.intendia.reactivity.client.Slots.RemovableSlot;
+import io.reactivex.Completable;
+import io.reactivex.CompletableTransformer;
+import io.reactivex.Flowable;
+import io.reactivex.Observable;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.disposables.Disposables;
 import io.reactivex.disposables.SerialDisposable;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import javax.annotation.Nullable;
@@ -30,6 +39,9 @@ public abstract class PresenterWidget<V extends View> implements IsWidget {
     private final V view;
     private final Set<PresenterWidget<?>> children = new HashSet<>();
     private SerialDisposable popup = new SerialDisposable();
+
+    private final List<Disposable> revealSubscriptions = new ArrayList<>();
+    private final List<Completable> revealObservables = new ArrayList<>();
 
     protected PresenterWidget(V view) {
         this.view = requireNonNull(view, "presenter view cannot be null");
@@ -116,6 +128,9 @@ public abstract class PresenterWidget<V extends View> implements IsWidget {
         if (isVisible()) return;
 
         onReveal();
+
+        for (Completable o : revealObservables) subscribe(o, revealSubscriptions);
+
         visible = true;
         for (PresenterWidget<?> c : new ArrayList<>(children)/*prevent concurrent modification*/) c.internalReveal();
         if (isPopup()) {
@@ -125,6 +140,10 @@ public abstract class PresenterWidget<V extends View> implements IsWidget {
             asPopupPresenter.getView().showAndReposition();
         }
     }
+
+    public void onReveal(Flowable<?> o) { onReveal(o.ignoreElements()); }
+    public void onReveal(Observable<?> o) { onReveal(o.ignoreElements()); }
+    public void onReveal(Completable o) { revealObservables.add(o); }
 
     /** @deprecated  */
     protected void onReset() {}
@@ -161,6 +180,9 @@ public abstract class PresenterWidget<V extends View> implements IsWidget {
         //unregisterVisibleHandlers();
         visible = false;
         onHide();
+
+        for (Disposable s : revealSubscriptions) s.dispose();
+        revealSubscriptions.clear();
     }
 
     private <T extends PresenterWidget<?>> void adoptChild(IsSlot<T> slot, PresenterWidget<?> child) {
@@ -188,5 +210,17 @@ public abstract class PresenterWidget<V extends View> implements IsWidget {
             parent = null;
         }
         slot = null;
+    }
+
+    private static CompletableTransformer subscriptionHandler = o -> o // default handler
+            .doOnError(GWT::reportUncaughtException)
+            .compose(retryDelay(a -> log("attach subscription error '" + a.err + "', retry attempt " + a.idx, a.err)));
+
+    public static void registerSubscriptionHandler(CompletableTransformer impl) {
+        subscriptionHandler = requireNonNull(impl, "subscription handler required");
+    }
+
+    @SuppressWarnings("unchecked") private void subscribe(Completable o, List<Disposable> to) {
+        to.add(o.compose(subscriptionHandler).subscribe());
     }
 }
