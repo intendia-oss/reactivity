@@ -18,9 +18,11 @@ import io.reactivex.Completable;
 import io.reactivex.CompletableTransformer;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
+import io.reactivex.Single;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.disposables.Disposables;
 import io.reactivex.disposables.SerialDisposable;
+import io.reactivex.subjects.PublishSubject;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -42,6 +44,7 @@ public abstract class PresenterWidget<V extends View> implements IsWidget {
 
     private final List<Disposable> revealSubscriptions = new ArrayList<>();
     private final List<Completable> revealObservables = new ArrayList<>();
+    private final PublishSubject<Object> reset = PublishSubject.create();
 
     protected PresenterWidget(V view) {
         this.view = requireNonNull(view, "presenter view cannot be null");
@@ -143,10 +146,12 @@ public abstract class PresenterWidget<V extends View> implements IsWidget {
 
     public void onReveal(Flowable<?> o) { onReveal(o.ignoreElements()); }
     public void onReveal(Observable<?> o) { onReveal(o.ignoreElements()); }
+    public void onReveal(Single<?> o) { onReveal(o.toCompletable()); }
     public void onReveal(Completable o) { revealObservables.add(o); }
 
     /** @deprecated  */
     protected void onReset() {}
+    protected Observable<?> reset() { return reset; }
 
     public void performReset() {
         if (!isVisible()) return;
@@ -162,6 +167,7 @@ public abstract class PresenterWidget<V extends View> implements IsWidget {
     void internalReset() {
         if (!isVisible()) return;
         onReset();
+        reset.onNext(this);
         for (PresenterWidget<?> c : new ArrayList<>(children)/*prevent concurrent modification*/) c.internalReset();
         if (isPopup()) ((PopupView) getView()).show();
     }
