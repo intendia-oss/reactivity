@@ -7,8 +7,10 @@ import com.intendia.reactivity.client.PlaceRequest;
 import com.intendia.reactivity.client.PresenterChild;
 import javax.inject.Inject;
 import javax.inject.Provider;
+import javax.inject.Singleton;
 import sample.nested.client.NameTokens;
 
+@Singleton
 public class EmptyPresenter extends PresenterChild<EmptyPresenter.MyView> {
 
     public static class MyPlace extends Place {

@@ -12,7 +12,7 @@
 
         <header>
             <div class="{res.style.container}">
-                <h1>GWTP Nested Sample</h1>
+                <h1>Reactivity Nested Sample</h1>
                 <ul>
                     <li>
                         <a href="https://github.com/intendia-oss/reactivity">[ Project Home ]</a>

@@ -11,10 +11,12 @@ import com.intendia.reactivity.client.PresenterChild;
 import com.intendia.reactivity.client.View;
 import io.reactivex.Single;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import sample.nested.client.NameTokens;
 import sample.nested.client.SampleEntryPoint.ClientModule.Presenters;
 import sample.nested.client.application.ApplicationPresenter.MainContent;
 
+@Singleton
 public class AboutUsPresenter extends PresenterChild<AboutUsPresenter.MyView> {
 
     public static class MyPlace extends Place {
@@ -23,6 +25,8 @@ public class AboutUsPresenter extends PresenterChild<AboutUsPresenter.MyView> {
         }
     }
 
+    @Inject AboutUsPresenter(MyView view, MainContent at) { super(view, at); }
+
     public static class MyView extends CompositeView implements View {
         @UiTemplate("AboutUsView.ui.xml") interface Ui extends UiBinder<Widget, MyView> {
             Ui binder = GWT.create(Ui.class);
@@ -30,6 +34,4 @@ public class AboutUsPresenter extends PresenterChild<AboutUsPresenter.MyView> {
 
         @Inject MyView() { initWidget(Ui.binder.createAndBindUi(this)); }
     }
-
-    @Inject AboutUsPresenter(MyView view, MainContent at) { super(view, at); }
 }

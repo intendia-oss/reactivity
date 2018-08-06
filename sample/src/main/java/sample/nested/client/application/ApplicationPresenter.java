@@ -33,7 +33,7 @@ public class ApplicationPresenter extends PresenterChild<ApplicationPresenter.My
 
     /**
      * This is the top-level view of the application. Every time another presenter wants to reveal itself, {@link
-     * MyView} will add its content of the target inside the {@code mainContantPanel}.
+     * MyView} will add its content of the target inside the {@code mainContentPanel}.
      */
     public static class MyView extends CompositeView implements View {
         @UiTemplate("ApplicationView.ui.xml") interface Ui extends UiBinder<Widget, MyView> {
