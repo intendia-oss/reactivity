@@ -1,5 +1,7 @@
 package sample.nested.client.application;
 
+import static com.intendia.rxgwt2.user.RxUser.register;
+
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.Style;
@@ -11,13 +13,14 @@ import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.web.bindery.event.shared.EventBus;
 import com.intendia.reactivity.client.CompositeView;
-import com.intendia.reactivity.client.PlaceManager;
+import com.intendia.reactivity.client.PlaceManager.LockInteractionEvent;
 import com.intendia.reactivity.client.PresenterChild;
 import com.intendia.reactivity.client.PresenterWidget;
 import com.intendia.reactivity.client.RootPresenter.RootContentSlot;
 import com.intendia.reactivity.client.Slots.NestedSlot;
 import com.intendia.reactivity.client.View;
 import dagger.Lazy;
+import io.reactivex.Observable;
 import io.reactivex.Single;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -59,6 +62,10 @@ public class ApplicationPresenter extends PresenterChild<ApplicationPresenter.My
 
     @Inject ApplicationPresenter(MyView view, RootContentSlot root, EventBus bus) {
         super(view, root); view.showLoading(false);
-        bus.addHandler(PlaceManager.LockInteractionEvent.TYPE, e -> getView().showLoading(e.shouldLock()));
+        onReveal(onLockInteraction(bus).doOnNext(ev -> getView().showLoading(ev.shouldLock())));
+    }
+
+    private static Observable<LockInteractionEvent> onLockInteraction(EventBus bus) {
+        return Observable.create(em -> register(em, bus.addHandler(LockInteractionEvent.TYPE, em::onNext)));
     }
 }

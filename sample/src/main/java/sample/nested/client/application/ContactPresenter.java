@@ -56,6 +56,6 @@ public class ContactPresenter extends PresenterChild<ContactPresenter.MyView> {
 
     @Inject ContactPresenter(MyView view, MainContent at, MyPlace place) {
         super(view, at);
-        place.navigationHistory.subscribe(n -> getView().setNavigationHistory(n));
+        onReveal(place.navigationHistory.doOnNext(n -> getView().setNavigationHistory(n)));
     }
 }
