@@ -12,7 +12,15 @@
             this page as the default when you come in this showcase.
         </p>
 
-        <p>Also try using back of your browser after being in another page !</p>
+        <p>Also try using back of your browser after being in another page!</p>
+
+        <p>
+            <g:IntegerBox ui:field="a" value="3"/>
+            +
+            <g:IntegerBox ui:field="b" value="2"/>
+            =
+            <g:InlineLabel ui:field="c"/>
+        </p>
 
         <p>
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla
