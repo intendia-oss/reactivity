@@ -31,14 +31,13 @@ import javax.inject.Singleton;
  * The goal of this sample is to show how to use nested presenters. These can be useful to decouple multiple presenters
  * that need to be displayed on the screen simultaneously.
  */
-@Singleton
 public class ApplicationPresenter extends PresenterChild<ApplicationPresenter.MyView> {
 
     /**
      * This is the top-level view of the application. Every time another presenter wants to reveal itself, {@link
      * MyView} will add its content of the target inside the {@code mainContentPanel}.
      */
-    public static class MyView extends CompositeView implements View {
+    public static @Singleton class MyView extends CompositeView implements View {
         @UiTemplate("ApplicationView.ui.xml") interface Ui extends UiBinder<Widget, MyView> {
             Ui binder = GWT.create(Ui.class);
         }

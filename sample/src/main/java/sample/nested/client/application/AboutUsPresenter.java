@@ -16,10 +16,9 @@ import sample.nested.client.NameTokens;
 import sample.nested.client.SampleEntryPoint.ClientModule.Presenters;
 import sample.nested.client.application.ApplicationPresenter.MainContent;
 
-@Singleton
 public class AboutUsPresenter extends PresenterChild<AboutUsPresenter.MyView> {
 
-    public static class MyPlace extends Place {
+    public static @Singleton class MyPlace extends Place {
         @Inject MyPlace(Single<Presenters> p) {
             super(NameTokens.aboutUsPage, p.map(Presenters::aboutUs), (PlaceRequest request) -> true);
         }

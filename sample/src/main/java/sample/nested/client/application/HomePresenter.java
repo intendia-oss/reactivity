@@ -14,10 +14,9 @@ import javax.inject.Singleton;
 import sample.nested.client.NameTokens;
 import sample.nested.client.SampleEntryPoint.ClientModule.Presenters;
 
-@Singleton
 public class HomePresenter extends PresenterChild<HomePresenter.MyView> {
 
-    public static class MyPlace extends Place {
+    public static @Singleton class MyPlace extends Place {
         @Inject MyPlace(Single<Presenters> p) {
             super(NameTokens.homePage, p.map(Presenters::home), (PlaceRequest request) -> true);
         }

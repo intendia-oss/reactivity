@@ -13,6 +13,13 @@
         </div>
 
         <p>
+            <input type="checkbox" /> Click this checkbox! this <tt>presenter</tt>
+            gets discarded whenever you hide it, so the checkbox should return
+            to its initial state. OTOH the <tt>places</tt> are <tt>@Singleton</tt>
+            and they survive the whole time. The visit history is in the <tt>place</tt>
+            so the history is accumulated per-reveals.
+        </p>
+        <p>
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla
             varius malesuada mollis. Nunc elit justo, pellentesque at condimentum
             a, egestas eget ipsum. Sed pulvinar metus non purus sollicitudin

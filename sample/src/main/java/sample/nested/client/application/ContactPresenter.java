@@ -20,7 +20,6 @@ import sample.nested.client.NameTokens;
 import sample.nested.client.SampleEntryPoint.ClientModule.Presenters;
 import sample.nested.client.application.ApplicationPresenter.MainContent;
 
-@Singleton
 public class ContactPresenter extends PresenterChild<ContactPresenter.MyView> {
 
     public static @Singleton class MyPlace extends Place {

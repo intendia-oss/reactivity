@@ -117,7 +117,7 @@ public class PlaceManager implements HasHandlers {
                         }));
                     })
                     /*prevents UI "freeze" caused by LockInteractionEvent*/
-                    .doOnTerminate(this::unlock).doOnError(ex -> unlock())
+                    .doOnTerminate(this::unlock)
                     .subscribe(); //XXX eliminate all subscribe calls!
         }
     }

@@ -10,10 +10,9 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 import sample.nested.client.NameTokens;
 
-@Singleton
 public class EmptyPresenter extends PresenterChild<EmptyPresenter.MyView> {
 
-    public static class MyPlace extends Place {
+    public static @Singleton class MyPlace extends Place {
         @Inject MyPlace(Provider<EmptyPresenter> p) {
             super(NameTokens.emptyPage, asSingle(p), (PlaceRequest request) -> true);
         }
