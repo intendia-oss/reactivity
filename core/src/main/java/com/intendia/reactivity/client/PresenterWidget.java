@@ -28,15 +28,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public abstract class PresenterWidget<V extends View> implements IsWidget {
     private final PopupSlot<PresenterWidget<? extends PopupView>> POPUP_SLOT = new PopupSlot<>(null);
 
-    PresenterWidget<?> parent;
-    IsSlot<?> slot;
-    boolean visible;
-    boolean isResetting;
+    @Nullable Papers adopted;
+    protected boolean visible;
+    private boolean isResetting;
 
     private final V view;
     private final Set<PresenterWidget<?>> children = new HashSet<>();
@@ -62,7 +62,7 @@ public abstract class PresenterWidget<V extends View> implements IsWidget {
 
     public <T extends PresenterWidget<?>> void addToSlot(MultiSlot<? super T> slot, T child) {
         requireNonNull(child, "cannot add null to a slot");
-        if (child.slot == slot && child.parent == this) return;
+        if (child.adopted != null && child.adopted.by == this && child.adopted.at == slot) return;
 
         adoptChild(slot, child);
 
@@ -77,11 +77,11 @@ public abstract class PresenterWidget<V extends View> implements IsWidget {
 
     private void internalClearSlot(IsSlot<?> slot, @Nullable PresenterWidget<?> dontRemove) {
         for (PresenterWidget<?> child : new ArrayList<>(children)/*copy to prevent concurrent modification*/) {
-            if (child.slot == slot && !child.equals(dontRemove)) child.orphan();
+            if (child.adopted != null && child.adopted.at == slot && !child.equals(dontRemove)) child.orphan();
         }
     }
 
-    public void removeFromParentSlot() { if (parent != null) parent.rawRemoveFromSlot(slot, this); }
+    public void removeFromParentSlot() { if (adopted != null) adopted.by.rawRemoveFromSlot(adopted.at, this); }
 
     public void removeFromPopupSlot(PresenterWidget<? extends PopupView> child) { removeFromSlot(POPUP_SLOT, child); }
 
@@ -91,7 +91,7 @@ public abstract class PresenterWidget<V extends View> implements IsWidget {
 
     private void rawRemoveFromSlot(IsSlot<?> slot, @Nullable PresenterWidget<?> child) {
         if (!slot.isRemovable()) throw new IllegalArgumentException("non removable slot");
-        if (child == null || child.slot != slot) return;
+        if (child == null || (child.adopted != null && child.adopted.at != slot)) return;
         if (!child.isPopup()) getView().removeFromSlot(slot, child);
         child.orphan();
     }
@@ -114,13 +114,13 @@ public abstract class PresenterWidget<V extends View> implements IsWidget {
     }
 
     public @Nullable <T extends PresenterWidget<?>> T getChild(IsSingleSlot<T> slot) {
-        for (PresenterWidget<?> c : children) if (c.slot == slot) return (T) c;
+        for (PresenterWidget<?> c : children) if (requireNonNull(c.adopted).at == slot) return (T) c;
         return null;
     }
 
     public <T extends PresenterWidget<?>> Set<T> getChildren(IsSlot<T> slot) {
         Set<T> result = slot instanceof OrderedSlot ? new TreeSet<>() : new HashSet<>();
-        for (PresenterWidget<?> c : children) if (c.slot == slot) result.add((T) c);
+        for (PresenterWidget<?> c : children) if (requireNonNull(c.adopted).at == slot) result.add((T) c);
         return result;
     }
 
@@ -155,8 +155,8 @@ public abstract class PresenterWidget<V extends View> implements IsWidget {
 
     public void performReset() {
         if (!isVisible()) return;
-        if (parent != null) {
-            parent.performReset();
+        if (adopted != null) {
+            adopted.by.performReset();
         } else if (!isResetting) {
             isResetting = true;
             internalReset();
@@ -192,30 +192,22 @@ public abstract class PresenterWidget<V extends View> implements IsWidget {
     }
 
     private <T extends PresenterWidget<?>> void adoptChild(IsSlot<T> slot, PresenterWidget<?> child) {
-        if (child.parent != this) {
-            if (child.parent != null) {
-                if (!child.slot.isRemovable()) {
-                    throw new IllegalArgumentException("Cannot move a child of a permanent slot to another slot");
-                }
-                child.parent.children.remove(child);
-            }
-            child.parent = this;
-            children.add(child);
-        }
-        child.slot = slot;
+        if (child.adopted != null && child.adopted.by == this && child.adopted.at == slot) return;
+        if (child.adopted != null) child.orphan();
+        child.adopted = new Papers(this, slot);
+        children.add(child);
     }
 
-    boolean isPopup() { return slot != null && slot.isPopup(); }
+    boolean isPopup() { return adopted != null && adopted.at.isPopup(); }
 
     private void orphan() {
-        if (slot == null) return;
-        if (!slot.isRemovable()) throw new IllegalArgumentException("Cannot remove a child from a permanent slot");
-        if (parent != null) {
-            internalHide();
-            parent.children.remove(this);
-            parent = null;
+        if (adopted == null) return;
+        if (!adopted.at.isRemovable()) {
+            throw new IllegalArgumentException("Cannot remove a child from a permanent slot");
         }
-        slot = null;
+        internalHide();
+        adopted.by.children.remove(this);
+        adopted = null;
     }
 
     private static CompletableTransformer subscriptionHandler = o -> o // default handler
@@ -228,5 +220,11 @@ public abstract class PresenterWidget<V extends View> implements IsWidget {
 
     @SuppressWarnings("unchecked") private void subscribe(Completable o, List<Disposable> to) {
         to.add(o.compose(subscriptionHandler).subscribe());
+    }
+
+    final static class Papers {
+        final @Nonnull PresenterWidget<?> by;
+        final @Nonnull IsSlot<?> at;
+        Papers(@Nonnull PresenterWidget<?> by, @Nonnull IsSlot<?> at) { this.by = by; this.at = at; }
     }
 }

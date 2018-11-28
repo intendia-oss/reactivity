@@ -1,13 +1,14 @@
 package sample.nested.client;
 
-import static sample.nested.client.NameTokens.emptyPage;
-
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.RunAsyncCallback;
 import com.intendia.reactivity.client.DefaultModule;
 import com.intendia.reactivity.client.Place;
 import com.intendia.reactivity.client.PlaceManager;
+import com.intendia.reactivity.client.PlaceManager.DefaultPlace;
+import com.intendia.reactivity.client.PlaceManager.ErrorPlace;
+import com.intendia.reactivity.client.PlaceManager.UnauthorizedPlace;
 import dagger.Binds;
 import dagger.Component;
 import dagger.Module;
@@ -26,17 +27,20 @@ import sample.nested.client.resources.Resources;
 public class SampleEntryPoint implements EntryPoint {
     @Override public void onModuleLoad() {
         Resources.inject();
-        DaggerSampleEntryPoint_ClientComponent.builder()
-                .defaultModule(new DefaultModule(emptyPage, emptyPage, emptyPage))
-                .build().placeManager().revealCurrentPlace();
+        DaggerSampleEntryPoint_ClientComponent.create().router().revealCurrentPlace();
     }
 
     @Component(modules = ClientModule.class) @Singleton interface ClientComponent {
-        PlaceManager placeManager();
+        PlaceManager router();
     }
 
     @Module(includes = DefaultModule.class, subcomponents = ClientModule.Presenters.class)
     public interface ClientModule {
+        // fallback places; required by PlaceManager to handle default, error and unauthorized cases
+        @Binds @DefaultPlace Place provideDefaultPlace(HomePresenter.MyPlace o);
+        @Binds @ErrorPlace Place provideErrorPlace(EmptyPresenter.MyPlace o);
+        @Binds @UnauthorizedPlace Place provideUnauthorizedPlace(EmptyPresenter.MyPlace o);
+
         // included in initial bundle
         @Binds @IntoSet Place bindEmptyPlace(EmptyPresenter.MyPlace o);
 

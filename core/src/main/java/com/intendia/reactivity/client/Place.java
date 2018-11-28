@@ -9,7 +9,7 @@ public class Place {
     private final Gatekeeper gatekeeper;
 
     public Place(String nameTokens, Single<? extends PresenterChild<?>> presenter) {
-        this(nameTokens, presenter, (PlaceRequest request) -> true);
+        this(nameTokens, presenter, Gatekeeper.PUBLIC);
     }
 
     public Place(String nameToken, Single<? extends PresenterChild<?>> presenter, Gatekeeper gatekeeper) {
@@ -19,14 +19,14 @@ public class Place {
     }
 
     public String getNameToken() { return nameToken; }
-    public boolean matchesRequest(PlaceRequest request) { return request.matchesNameToken(nameToken); }
+    public boolean matchesRequest(PlaceRequest request) { return request.matchesNameToken(getNameToken()); }
     public boolean canReveal(PlaceRequest request) { return gatekeeper.canReveal(request); }
     public Single<? extends PresenterChild<?>> getPresenter() { return presenter; }
 
     @Override public final boolean equals(Object o) { return o instanceof Place && equals((Place) o); }
-    private boolean equals(Place o) { return nameToken.equals(o.nameToken) || nameToken.equals(o.nameToken); }
+    private boolean equals(Place o) { return nameToken.equals(o.nameToken); }
     @Override public final int hashCode() { return 17 * nameToken.hashCode(); }
-    @Override public final String toString() { return nameToken; }
+    @Override public final String toString() { return getNameToken(); }
 
     public static <T> Single<T> asSingle(Provider<T> presenter) {
         return Single.fromCallable(presenter::get);

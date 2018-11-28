@@ -42,9 +42,9 @@ public class PlaceManagerImplTest {
         @Provides static View provideView() { return mock(View.class); }
         @Provides @Singleton static TestScheduler provideTestScheduler() { return new TestScheduler(); }
 
-        @Binds @IntoSet Place bindBasicProxy(BasicPalce o);
-        @Binds @IntoSet Place bindRedirectProxy(RedirectPlace o);
-        @Binds @IntoSet Place bindRedirectNoHistoryProxy(RedirectNoHistoryPlace o);
+        @Binds @IntoSet Place bindBasicPlace(BasicPlace o);
+        @Binds @IntoSet Place bindRedirectPlace(RedirectPlace o);
+        @Binds @IntoSet Place bindRedirectNoHistoryPlace(RedirectNoHistoryPlace o);
     }
 
     @Singleton @Component(modules = GatekeeperTest.MyModule.class) interface MyComponent {
@@ -56,8 +56,8 @@ public class PlaceManagerImplTest {
         @Override public final boolean isVisible() { return super.isVisible(); }
     }
 
-    static class BasicPalce extends Place {
-        @Inject BasicPalce(Provider<BasicPresenter> p) { super("basic", asSingle(p)); }
+    static class BasicPlace extends Place {
+        @Inject BasicPlace(Provider<BasicPresenter> p) { super("basic", asSingle(p)); }
     }
 
     /** This presenter automatically redirects in prepareFromRequest to PresenterBasic. */

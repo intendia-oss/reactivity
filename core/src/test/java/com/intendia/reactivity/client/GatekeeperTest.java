@@ -38,9 +38,9 @@ public class GatekeeperTest {
         @Provides static View provideView() { return mock(View.class); }
         @Provides @Singleton static TestScheduler provideTestScheduler() { return new TestScheduler(); }
 
-        @Binds @IntoSet Place bindHomeProxy(DenyPlace o);
-        @Binds @IntoSet Place bindAboutUsProxy(GrantPlace o);
-        @Binds @IntoSet Place bindContactProxy(DefaultPlace o);
+        @Binds @IntoSet Place bindDenyPlace(DenyPlace o);
+        @Binds @IntoSet Place bindGrantPlace(GrantPlace o);
+        @Binds @IntoSet Place bindDefaultPlace(DefaultPlace o);
 
         @Binds @Named("deny") Factory bindDenyGatekeeper(DenyGatekeeper o);
         @Binds @Named("grant") Factory bindGrantGatekeeper(GrantGatekeeper o);

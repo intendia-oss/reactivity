@@ -15,8 +15,8 @@ public class PlaceManagerTestUtil extends PlaceManager {
     private final PlaceManagerWindowMethodsTestUtil gwtWindowMethods;
 
     @Inject PlaceManagerTestUtil(EventBus eventBus, TokenFormatter tokenFormatter,
-            PlaceManagerWindowMethodsTestUtil gwtWindowMethods, Set<Place> places) {
-        super(eventBus, tokenFormatter, mock(Historian.class), places, "defaultPlace", "defaultPlace", "defaultPlace");
+            PlaceManagerWindowMethodsTestUtil gwtWindowMethods, Set<Place> places, GatekeeperTest.DefaultPlace dp) {
+        super(eventBus, tokenFormatter, mock(Historian.class), places, dp, dp, dp);
         this.gwtWindowMethods = gwtWindowMethods;
     }
 

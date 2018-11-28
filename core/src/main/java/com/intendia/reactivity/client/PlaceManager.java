@@ -53,18 +53,18 @@ public class PlaceManager implements HasHandlers {
             TokenFormatter tokenFormatter,
             Historian historian,
             Set<Place> places,
-            @DefaultPlace String pDefault,
-            @ErrorPlace String pError,
-            @UnauthorizedPlace String pUnauthorized
+            @DefaultPlace Place pDefault,
+            @ErrorPlace Place pError,
+            @UnauthorizedPlace Place pUnauthorized
     ) {
         this.eventBus = bus;
         this.tokenFormatter = tokenFormatter;
         this.historian = historian;
         this.places = places;
         this.historian.addValueChangeHandler(event -> handleTokenChange(event.getValue()));
-        this.defaultPlaceRequest = PlaceRequest.of(pDefault).build();
-        this.errorPlaceRequest = PlaceRequest.of(pError).build();
-        this.unauthorizedPlaceRequest = PlaceRequest.of(pUnauthorized).build();
+        this.defaultPlaceRequest = PlaceRequest.of(pDefault.getNameToken()).build();
+        this.errorPlaceRequest = PlaceRequest.of(pError.getNameToken()).build();
+        this.unauthorizedPlaceRequest = PlaceRequest.of(pUnauthorized.getNameToken()).build();
     }
 
     /**
