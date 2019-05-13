@@ -332,8 +332,12 @@ public class PlaceManager implements HasHandlers {
         } catch (TokenFormatException ignore) {}
     }
 
+    /** Builds a string corresponding to the history token to reveal the specified {@link PlaceRequest}. */
+    public String buildHistoryToken(PlaceRequest request) { return tokenFormatter.toPlaceToken(request);}
+
     public static class NavigationEvent extends GwtEvent<NavigationEvent.NavigationHandler> {
         public static final Type<NavigationHandler> TYPE = new Type<>();
+        public static Type<NavigationHandler> getType() { return TYPE; }
         private PlaceRequest request;
         public NavigationEvent(PlaceRequest request) { this.request = request; }
         @Override public Type<NavigationHandler> getAssociatedType() { return TYPE; }
@@ -346,6 +350,7 @@ public class PlaceManager implements HasHandlers {
 
     public static class NavigationRefusedEvent extends GwtEvent<NavigationRefusedEvent.NavigationRefusedHandler> {
         public static final Type<NavigationRefusedHandler> TYPE = new Type<>();
+        public static Type<NavigationRefusedHandler> getType() { return TYPE; }
         @Override public Type<NavigationRefusedHandler> getAssociatedType() { return TYPE; }
         @Override protected void dispatch(NavigationRefusedHandler handler) { handler.onNavigationRefused(this); }
         public interface NavigationRefusedHandler extends EventHandler {

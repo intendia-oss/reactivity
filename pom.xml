@@ -58,8 +58,8 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <javax.inject.version>1</javax.inject.version>
-        <guava.version>27.0.1-jre</guava.version>
-        <dagger.version>2.19</dagger.version>
+        <guava.version>27.1-jre</guava.version>
+        <dagger.version>2.21</dagger.version>
         <junit.version>4.11</junit.version>
         <mockito.version>1.9.5</mockito.version>
     </properties>

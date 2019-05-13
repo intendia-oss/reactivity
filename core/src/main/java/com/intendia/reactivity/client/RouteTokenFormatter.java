@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -16,16 +18,16 @@ import javax.inject.Singleton;
 public class RouteTokenFormatter implements TokenFormatter {
     private static class RouteMatch implements Comparable<RouteMatch> {
         final String route;
-        final int staticMatches;
+        final int nestLevel;
         final Map<String, String> parameters;
 
-        RouteMatch(String route, int staticMatches, Map<String, String> parameters) {
-            this.route = route; this.staticMatches = staticMatches; this.parameters = parameters;
+        RouteMatch(String route, int nestLevel, Map<String, String> parameters) {
+            this.route = route; this.nestLevel = nestLevel; this.parameters = parameters;
         }
 
         @Override
         public int compareTo(@Nullable RouteMatch other) {
-            return other == null ? -1 : Integer.compare(staticMatches, other.staticMatches);
+            return other == null ? -1 : Integer.compare(nestLevel, other.nestLevel);
         }
     }
 
@@ -40,32 +42,20 @@ public class RouteTokenFormatter implements TokenFormatter {
     @Override
     public String toPlaceToken(PlaceRequest placeRequest) throws TokenFormatException {
         String placeToken = placeRequest.getNameToken();
-        StringBuilder queryStringBuilder = new StringBuilder();
-        String querySeparator = "";
+        Stream.Builder<String> queryStringBuilder = Stream.builder();
 
         for (String parameterName : placeRequest.getParameterNames()) {
             String parameterValue = placeRequest.getParameter(parameterName, null);
             if (parameterValue != null) {
                 String encodedParameterValue = urlUtils.encodeQueryString(parameterValue);
-
-                if (placeToken.contains("/{" + parameterName + "}")) {
-                    // route parameter
-                    placeToken = placeToken.replace("{" + parameterName + "}", encodedParameterValue);
-                } else {
-                    // query parameter
-                    queryStringBuilder.append(querySeparator).append(parameterName).append("=")
-                            .append(encodedParameterValue);
-                    querySeparator = "&";
-                }
+                boolean routeParam = placeToken.contains("/{" + parameterName + "}");
+                if (routeParam) placeToken = placeToken.replace("{" + parameterName + "}", encodedParameterValue);
+                else queryStringBuilder.add(parameterName + "=" + encodedParameterValue);
             }
         }
 
-        String queryString = queryStringBuilder.toString();
-        if (!queryString.isEmpty()) {
-            placeToken = placeToken + "?" + queryString;
-        }
-
-        return placeToken;
+        String queryString = queryStringBuilder.build().collect(Collectors.joining("&"));
+        return queryString.isEmpty() ? placeToken : placeToken + "?" + queryString;
     }
 
     @Override
@@ -117,10 +107,10 @@ public class RouteTokenFormatter implements TokenFormatter {
         if (placeParts.length == 0) return new RouteMatch(route, 0, emptyMap());
 
         Map<String, String> ps = new HashMap<>();
-        int staticMatches = 0;
+        int nestLevel = 0;
         for (int i = 0; i < placeParts.length; i++) {
             String placePart = placeParts[i], routePart = routeParts[i];
-            if (placePart.equals(routePart)) staticMatches++;
+            if (placePart.equals(routePart)) nestLevel++;
             else if (routePart.matches("\\{.*\\}")) {
                 String paramName = routePart.substring(1, routePart.length() - 1);
                 String paramValue = urlUtils.decodeQueryString(placePart);
@@ -128,6 +118,6 @@ public class RouteTokenFormatter implements TokenFormatter {
             } else return null;
         }
 
-        return new RouteMatch(route, staticMatches, ps);
+        return new RouteMatch(route, nestLevel, ps);
     }
 }

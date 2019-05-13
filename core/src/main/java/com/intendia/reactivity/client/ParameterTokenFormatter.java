@@ -1,14 +1,13 @@
 package com.intendia.reactivity.client;
 
-import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
 @Singleton
 public class ParameterTokenFormatter implements TokenFormatter {
 
-    protected static final String PARAM_SEPARATOR = ";";
-    protected static final String VALUE_SEPARATOR = "=";
+    protected static final char PARAM_SEPARATOR = ';';
+    protected static final char VALUE_SEPARATOR = '=';
 
     // Escaped versions of the above.
     protected static final char ESCAPE_CHARACTER = '\\';
@@ -26,40 +25,36 @@ public class ParameterTokenFormatter implements TokenFormatter {
     public PlaceRequest toPlaceRequest(String placeToken) throws TokenFormatException {
         String unescapedPlaceToken = urlUtils.decodeQueryString(placeToken);
         int split = unescapedPlaceToken.indexOf(PARAM_SEPARATOR);
-        if (split == 0) {
-            throw new TokenFormatException("Place history token is missing.");
-        } else if (split == -1) {
-            // No parameters.
-            return PlaceRequest.of(customUnescape(unescapedPlaceToken)).build();
-        } else /*if (split >= 0)*/ {
-            PlaceRequest.Builder reqBuilder = PlaceRequest.of(customUnescape(unescapedPlaceToken.substring(0, split)));
-            String paramsChunk = unescapedPlaceToken.substring(split + 1);
-            String[] paramTokens = paramsChunk.split(PARAM_SEPARATOR);
-            for (String paramToken : paramTokens) {
-                if (paramToken.isEmpty()) {
-                    throw new TokenFormatException("Bad parameter: Successive parameters require a single '" +
-                            PARAM_SEPARATOR + "' between them.");
-                }
-                String[] param = paramToken.split(VALUE_SEPARATOR);
-                if (param.length == 1) {
-                    // If there is only one parameter, then we need an '=' at the last position.
-                    if (paramToken.charAt(paramToken.length() - 1) != VALUE_SEPARATOR.charAt(0)) {
-                        throw new TokenFormatException("Bad parameter: Need exactly one key and one value.");
-                    }
-                } else if (param.length == 2) {
-                    // If there are two parameters, then there must not be a '=' at the last position.
-                    if (paramToken.charAt(paramToken.length() - 1) == VALUE_SEPARATOR.charAt(0)) {
-                        throw new TokenFormatException("Bad parameter: Need exactly one key and one value.");
-                    }
-                } else {
+        if (split == -1) return PlaceRequest.of(customUnescape(unescapedPlaceToken)).build(); // no parameters
+        if (split == 0) throw new TokenFormatException("Place history token is missing."); // error
+
+        PlaceRequest.Builder reqBuilder = PlaceRequest.of(customUnescape(unescapedPlaceToken.substring(0, split)));
+        String paramsChunk = unescapedPlaceToken.substring(split + 1);
+        String[] paramTokens = paramsChunk.split(String.valueOf(PARAM_SEPARATOR));
+        for (String paramToken : paramTokens) {
+            if (paramToken.isEmpty()) {
+                throw new TokenFormatException("Bad parameter: Successive parameters require a single '" +
+                        PARAM_SEPARATOR + "' between them.");
+            }
+            String[] param = paramToken.split(String.valueOf(VALUE_SEPARATOR));
+            if (param.length == 1) {
+                // If there is only one parameter, then we need an '=' at the last position.
+                if (paramToken.charAt(paramToken.length() - 1) != VALUE_SEPARATOR) {
                     throw new TokenFormatException("Bad parameter: Need exactly one key and one value.");
                 }
-                String key = customUnescape(param[0]);
-                String value = param.length == 2 ? customUnescape(param[1]) : "";
-                reqBuilder = reqBuilder.with(key, value);
+            } else if (param.length == 2) {
+                // If there are two parameters, then there must not be a '=' at the last position.
+                if (paramToken.charAt(paramToken.length() - 1) == VALUE_SEPARATOR) {
+                    throw new TokenFormatException("Bad parameter: Need exactly one key and one value.");
+                }
+            } else {
+                throw new TokenFormatException("Bad parameter: Need exactly one key and one value.");
             }
-            return reqBuilder.build();
+            String key = customUnescape(param[0]);
+            String value = param.length == 2 ? customUnescape(param[1]) : "";
+            reqBuilder.with(key, value);
         }
+        return reqBuilder.build();
     }
 
     /**
@@ -82,7 +77,7 @@ public class ParameterTokenFormatter implements TokenFormatter {
             if (ch == ESCAPE_CHARACTER) {
                 i++;
                 char ch2 = string.charAt(i);
-                 if (ch2 == paramNum) builder.append(PARAM_SEPARATOR);
+                if (ch2 == paramNum) builder.append(PARAM_SEPARATOR);
                 else if (ch2 == valueNum) builder.append(VALUE_SEPARATOR);
                 else if (ch2 == escapeNum) builder.append(ESCAPE_CHARACTER);
             } else {
@@ -105,12 +100,9 @@ public class ParameterTokenFormatter implements TokenFormatter {
     public String toPlaceToken(PlaceRequest placeRequest) throws TokenFormatException {
         StringBuilder out = new StringBuilder();
         out.append(customEscape(placeRequest.getNameToken()));
-        Set<String> params = placeRequest.getParameterNames();
-        if (params != null) {
-            for (String name : params) {
-                out.append(PARAM_SEPARATOR).append(customEscape(name)).append(VALUE_SEPARATOR).append(
-                        customEscape(placeRequest.getParameter(name, null)));
-            }
+        for (String name : placeRequest.getParameterNames()) {
+            out.append(PARAM_SEPARATOR).append(customEscape(name))
+                    .append(VALUE_SEPARATOR).append(customEscape(placeRequest.getParameter(name, null)));
         }
 
         return out.toString();
@@ -124,19 +116,13 @@ public class ParameterTokenFormatter implements TokenFormatter {
      */
     String customEscape(String string) {
         StringBuilder builder = new StringBuilder();
-        int len = string.length();
-
-        char paramChar = PARAM_SEPARATOR.charAt(0);
-        char valueChar = VALUE_SEPARATOR.charAt(0);
-
-        for (int i = 0; i < len; i++) {
+        for (int i = 0, len = string.length(); i < len; i++) {
             char ch = string.charAt(i);
             if (ch == ESCAPE_CHARACTER) builder.append(ESCAPED_ESCAPE_CHAR);
-            else if (ch == paramChar) builder.append(ESCAPED_PARAM_SEPARATOR);
-            else if (ch == valueChar) builder.append(ESCAPED_VALUE_SEPARATOR);
+            else if (ch == PARAM_SEPARATOR) builder.append(ESCAPED_PARAM_SEPARATOR);
+            else if (ch == VALUE_SEPARATOR) builder.append(ESCAPED_VALUE_SEPARATOR);
             else builder.append(ch);
         }
-
         return urlUtils.encodeQueryString(builder.toString());
     }
 }

@@ -2,7 +2,9 @@ package com.intendia.reactivity.client;
 
 import static io.reactivex.Completable.complete;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import io.reactivex.Completable;
+import io.reactivex.CompletableTransformer;
 import io.reactivex.Single;
 
 public interface Slots {
@@ -13,8 +15,8 @@ public interface Slots {
     }
 
     /**
-     * Only PermanentSlot does not implement this interface. Slots must implement RemovableSlot to allow presenters to be
-     * removed once they are added to the slot.
+     * Only PermanentSlot does not implement this interface. Slots must implement RemovableSlot to allow presenters to
+     * be removed once they are added to the slot.
      */
     interface RemovableSlot<T extends PresenterWidget<?>> extends IsSlot<T> {}
 
@@ -23,18 +25,18 @@ public interface Slots {
 
     /** A slot that can reveal a child presenter. */
     interface RevealableSlot<T extends PresenterWidget<?>> extends IsSingleSlot<T> {
-        Completable reveal(T presenter);
+        @CanIgnoreReturnValue Completable reveal(T presenter);
     }
 
     /** Use NestedSlot in classes extending {@link PresenterChild} to automatically display child presenters. */
     abstract class NestedSlot<T extends PresenterWidget<?>> implements RevealableSlot<T>, RemovableSlot<T> {
-        protected final Single<? extends PresenterWidget<?>> proxy;
-        protected NestedSlot(Single<? extends PresenterWidget<?>> proxy) { this.proxy = proxy; }
-        @Override public Completable reveal(T presenter) {
-            return proxy.flatMapCompletable(p -> {
+        protected final Single<? extends PresenterWidget<?>> adopter;
+        protected NestedSlot(Single<? extends PresenterWidget<?>> adopter) { this.adopter = adopter; }
+        @Override public Completable reveal(T adoptee) {
+            return adopter.flatMapCompletable(p -> {
                 Completable reveal = p instanceof PresenterChild ? ((PresenterChild) p).forceReveal() : complete();
-                return reveal.andThen(Completable.fromAction(() -> p.setInSlot(this, presenter)));
-            });
+                return reveal.andThen(Completable.fromAction(() -> p.setInSlot(this, adoptee)));
+            }).compose(AsPromise);
         }
     }
 
@@ -61,10 +63,13 @@ public interface Slots {
             return proxy.flatMapCompletable(p -> {
                 Completable reveal = p instanceof PresenterChild ? ((PresenterChild) p).forceReveal() : complete();
                 return reveal.andThen(Completable.fromAction(() -> p.addToPopupSlot(presenter)));
-            });
+            }).compose(AsPromise);
         }
     }
 
     /** A slot that can only take one presenter at a time. */
     class SingleSlot<T extends PresenterWidget<?>> implements IsSingleSlot<T>, RemovableSlot<T> {}
+
+    /** Internal utility to make reveal operations eager, so it works even if no one subscribe. */
+    CompletableTransformer AsPromise = o -> o.toObservable().replay().autoConnect(-1).ignoreElements();
 }

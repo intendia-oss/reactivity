@@ -17,6 +17,7 @@ import com.intendia.reactivity.client.Slots.RemovableSlot;
 import io.reactivex.Completable;
 import io.reactivex.CompletableTransformer;
 import io.reactivex.Flowable;
+import io.reactivex.Maybe;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.disposables.Disposable;
@@ -124,7 +125,7 @@ public abstract class PresenterWidget<V extends View> implements IsWidget {
         return result;
     }
 
-    /** @deprecated  */
+    /** @deprecated use {@link #onReveal(Completable)} or any of it Rx variants instead */
     protected void onReveal() {}
 
     @VisibleForTesting void internalReveal() {
@@ -147,9 +148,10 @@ public abstract class PresenterWidget<V extends View> implements IsWidget {
     public void onReveal(Flowable<?> o) { onReveal(o.ignoreElements()); }
     public void onReveal(Observable<?> o) { onReveal(o.ignoreElements()); }
     public void onReveal(Single<?> o) { onReveal(o.toCompletable()); }
+    public void onReveal(Maybe<?> o) { onReveal(o.ignoreElement()); }
     public void onReveal(Completable o) { revealObservables.add(o); }
 
-    /** @deprecated  */
+    /** @deprecated use {@link #onReveal(Observable)} combined with {@link #reset()} instead */
     protected void onReset() {}
     protected Observable<?> reset() { return reset; }
 
@@ -172,7 +174,7 @@ public abstract class PresenterWidget<V extends View> implements IsWidget {
         if (isPopup()) ((PopupView) getView()).show();
     }
 
-    /** @deprecated  */
+    /** @deprecated use {@link #onReveal(Completable)} or any of it Rx variants instead */
     protected void onHide() {}
 
     void internalHide() {

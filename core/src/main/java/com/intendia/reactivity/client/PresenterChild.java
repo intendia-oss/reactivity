@@ -2,6 +2,7 @@ package com.intendia.reactivity.client;
 
 import static io.reactivex.Completable.complete;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.intendia.reactivity.client.Slots.RevealableSlot;
 import io.reactivex.Completable;
 import javax.inject.Singleton;
@@ -15,12 +16,12 @@ public abstract class PresenterChild<V extends View> extends PresenterWidget<V> 
         this.parentSlot = parentSlot;
     }
 
-    public final Completable forceReveal() {
-        return Completable.defer(() -> !isVisible() ? revealInParent() : complete());
+    public @CanIgnoreReturnValue Completable forceReveal() {
+        return !isVisible() ? revealInParent() : complete();
     }
 
-    protected Completable revealInParent() {
-        return parentSlot.reveal(this);
+    protected @CanIgnoreReturnValue Completable revealInParent() {
+        return parentSlot.reveal(this).compose(Slots.AsPromise);
     }
 
     public Completable prepareFromRequest(PlaceRequest request) {

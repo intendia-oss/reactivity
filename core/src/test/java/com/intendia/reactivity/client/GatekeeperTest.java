@@ -8,7 +8,6 @@ import static org.mockito.Mockito.verify;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.SimpleEventBus;
-import com.intendia.reactivity.client.Gatekeeper.Factory;
 import com.intendia.reactivity.client.RootPresenter.RootContentSlot;
 import dagger.Binds;
 import dagger.Component;
@@ -42,12 +41,16 @@ public class GatekeeperTest {
         @Binds @IntoSet Place bindGrantPlace(GrantPlace o);
         @Binds @IntoSet Place bindDefaultPlace(DefaultPlace o);
 
-        @Binds @Named("deny") Factory bindDenyGatekeeper(DenyGatekeeper o);
-        @Binds @Named("grant") Factory bindGrantGatekeeper(GrantGatekeeper o);
+        @Binds @Named("deny") GatekeeperFactory bindDenyGatekeeper(DenyGatekeeper o);
+        @Binds @Named("grant") GatekeeperFactory bindGrantGatekeeper(GrantGatekeeper o);
     }
 
     @Singleton @Component(modules = MyModule.class) interface MyComponent {
         MembersInjector<GatekeeperTest> injector();
+    }
+
+    @FunctionalInterface public interface GatekeeperFactory {
+        Gatekeeper create(String... params);
     }
 
     static class DenyPresenter extends PresenterChild<View> {
@@ -55,7 +58,9 @@ public class GatekeeperTest {
     }
 
     static class DenyPlace extends Place {
-        @Inject DenyPlace(Provider<DenyPresenter> p, @Named("deny") Factory g) { super("deny", asSingle(p), g.create()); }
+        @Inject DenyPlace(Provider<DenyPresenter> p, @Named("deny") GatekeeperFactory g) {
+            super("deny", asSingle(p), g.create());
+        }
     }
 
     static class GrantPresenter extends PresenterChild<View> {
@@ -63,8 +68,9 @@ public class GatekeeperTest {
     }
 
     static class GrantPlace extends Place {
-        @Inject GrantPlace(Provider<GrantPresenter> p, @Named("grant") Factory g) { super("grant", asSingle(p),
-                g.create()); }
+        @Inject GrantPlace(Provider<GrantPresenter> p, @Named("grant") GatekeeperFactory g) {
+            super("grant", asSingle(p), g.create());
+        }
     }
 
     static class DefaultPresenter extends PresenterChild<View> {
@@ -75,12 +81,12 @@ public class GatekeeperTest {
         @Inject DefaultPlace(Provider<DefaultPresenter> p) { super("defaultPlace", asSingle(p)); }
     }
 
-    static class DenyGatekeeper implements Factory {
+    static class DenyGatekeeper implements GatekeeperFactory {
         @Inject public DenyGatekeeper() {}
         @Override public Gatekeeper create(String... params) { return request -> false; }
     }
 
-    static class GrantGatekeeper implements Factory {
+    static class GrantGatekeeper implements GatekeeperFactory {
         @Inject public GrantGatekeeper() {}
         @Override public Gatekeeper create(String... params) { return request -> true; }
     }

@@ -1,5 +1,7 @@
 package com.intendia.reactivity.client;
 
+import static com.intendia.reactivity.client.Slots.AsPromise;
+
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.Style;
@@ -10,12 +12,12 @@ import com.google.web.bindery.event.shared.EventBus;
 import com.intendia.reactivity.client.PlaceManager.LockInteractionEvent;
 import com.intendia.reactivity.client.Slots.IsSlot;
 import com.intendia.reactivity.client.Slots.RevealableSlot;
-import dagger.Lazy;
 import io.reactivex.Completable;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 public class RootPresenter extends PresenterWidget<RootPresenter.RootView> {
@@ -51,22 +53,22 @@ public class RootPresenter extends PresenterWidget<RootPresenter.RootView> {
     }
 
     public static @Singleton class RootContentSlot implements RevealableSlot<PresenterWidget<?>> {
-        private final Lazy<RootPresenter> root;
-        @Inject RootContentSlot(Lazy<RootPresenter> root) { this.root = root; }
+        private final Provider<RootPresenter> root;
+        @Inject RootContentSlot(Provider<RootPresenter> root) { this.root = root; }
         @Override public Completable reveal(PresenterWidget<?> presenter) {
-            return Completable.fromAction(() -> root.get().setInSlot(this, presenter));
+            return Completable.fromAction(() -> root.get().setInSlot(this, presenter)).compose(AsPromise);
         }
     }
 
-    public static @Singleton class RootPopupSlot implements RevealableSlot<PresenterWidget<PopupView>> {
-        private final Lazy<RootPresenter> root;
-        @Inject RootPopupSlot(Lazy<RootPresenter> root) { this.root = root; }
-        @Override public Completable reveal(PresenterWidget<PopupView> presenter) {
-            return Completable.fromAction(() -> root.get().addToPopupSlot(presenter));
+    public static @Singleton class RootPopupSlot implements RevealableSlot<PresenterWidget<? extends PopupView>> {
+        private final Provider<RootPresenter> root;
+        @Inject RootPopupSlot(Provider<RootPresenter> root) { this.root = root; }
+        @Override public Completable reveal(PresenterWidget<? extends PopupView> presenter) {
+            return Completable.fromAction(() -> root.get().addToPopupSlot(presenter)).compose(AsPromise);
         }
     }
 
-    @Inject public RootPresenter(RootView view, EventBus bus) {
+    @Inject public RootPresenter(EventBus bus, RootView view) {
         super(view);
         visible = true;
         bus.addHandler(LockInteractionEvent.TYPE, e -> getView().lockScreen(e.shouldLock()));
