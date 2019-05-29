@@ -30,10 +30,8 @@ public class GatekeeperTest {
     @Module interface MyModule {
         @Provides @Singleton static EventBus provideEventBus() { return new SimpleEventBus(); }
         @Binds @Singleton TokenFormatter bindTokenFormatter(ParameterTokenFormatter o);
-        @Binds @Singleton PlaceManager bindPlaceManager(PlaceManagerTestUtil o);
-        @Provides @Singleton static PlaceManagerWindowMethodsTestUtil providePlaceManagerWindowMethodsTestUtil() {
-            return mock(PlaceManagerWindowMethodsTestUtil.class);
-        }
+        @Binds @Singleton PlaceManager bindPlaceManager(TestPlaceManager o);
+        @Provides @Singleton static TestPlaceManager.MyMock providePMM() { return mock(TestPlaceManager.MyMock.class);}
         @Provides static View provideView() { return mock(View.class); }
         @Provides @Singleton static TestScheduler provideTestScheduler() { return new TestScheduler(); }
 

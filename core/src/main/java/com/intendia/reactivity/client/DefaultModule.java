@@ -1,9 +1,9 @@
 package com.intendia.reactivity.client;
 
-import com.google.gwt.place.shared.PlaceHistoryHandler.DefaultHistorian;
-import com.google.gwt.place.shared.PlaceHistoryHandler.Historian;
 import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.SimpleEventBus;
+import com.intendia.reactivity.client.PlaceManager.DefaultHistorian;
+import com.intendia.reactivity.client.PlaceManager.Historian;
 import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;

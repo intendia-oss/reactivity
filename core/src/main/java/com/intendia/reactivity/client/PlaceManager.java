@@ -1,13 +1,14 @@
 package com.intendia.reactivity.client;
 
+import static io.reactivex.Completable.defer;
 import static io.reactivex.Completable.fromAction;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static java.util.Objects.requireNonNull;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
-import com.google.gwt.event.shared.HasHandlers;
-import com.google.gwt.place.shared.PlaceHistoryHandler.Historian;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Window;
@@ -16,13 +17,13 @@ import com.google.web.bindery.event.shared.HandlerRegistration;
 import com.intendia.reactivity.client.TokenFormatter.TokenFormatException;
 import io.reactivex.Completable;
 import java.lang.annotation.Retention;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.inject.Qualifier;
 
-public class PlaceManager implements HasHandlers {
+public class PlaceManager {
 
     @Qualifier @Retention(RUNTIME) public @interface DefaultPlace {}
 
@@ -46,7 +47,7 @@ public class PlaceManager implements HasHandlers {
     private HandlerRegistration windowClosingHandlerRegistration;
     private boolean locked;
 
-    private @Named PlaceRequest place = null;
+    private PlaceRequest place = new PlaceRequest.Builder().build();
 
     @Inject protected PlaceManager(
             EventBus bus,
@@ -89,36 +90,27 @@ public class PlaceManager implements HasHandlers {
     }
 
     /** Do not call this method directly, instead call {@link #revealPlace(PlaceRequest)} or a related method. */
-    protected void doRevealPlace(PlaceRequest request, boolean updateBrowserUrl) {
+    protected void doRevealPlace(PlaceRequest request) {
         Optional<Place> matches = places.stream()
                 .filter(place -> place.matchesRequest(request))
                 .findFirst();
         if (!matches.isPresent()) {
             unlock();
-            error(tokenFormatter.toPlaceToken(place));
+            error(tokenFormatter.toPlaceToken(request));
         } else if (!requireNonNull(matches.get()).canReveal(request)) {
             unlock();
-            illegalAccess(tokenFormatter.toPlaceToken(place));
+            illegalAccess(tokenFormatter.toPlaceToken(request));
         } else {
-            matches.get().getPresenter()
-                    .flatMapCompletable(p -> {
-                        PlaceRequest originalRequest = getCurrentPlaceRequest();
-                        return p.prepareFromRequest(request).andThen(Completable.defer(() -> {
-                            // User did not manually update place request in prepareFromRequest, update it here.
-                            if (originalRequest == getCurrentPlaceRequest()) updateHistory(request, updateBrowserUrl);
+            matches.get().getPresenter().flatMapCompletable(p -> p.prepareFromRequest(request).andThen(defer(() -> {
+                // User might manually update place request in prepareFrom request, so always read it again
+                fireEvent(new NavigationEvent(getCurrentPlaceRequest()));
 
-                            fireEvent(new NavigationEvent(request));
+                // Reveal only if there are no pending navigation requests
+                if (hasPendingNavigation()) return Completable.complete();
 
-                            // Reveal only if there are no pending navigation requests
-                            if (hasPendingNavigation()) return Completable.complete();
-
-                            if (!p.isVisible()) return p.forceReveal(); // This will trigger a reset in due time
-                            else return fromAction(() -> p.performReset()); // We have to do the reset ourselves
-                        }));
-                    })
-                    /*prevents UI "freeze" caused by LockInteractionEvent*/
-                    .doOnTerminate(this::unlock)
-                    .subscribe(); //XXX eliminate all subscribe calls!
+                if (!p.isVisible()) return p.forceReveal(); // This will trigger a reset in due time
+                else return fromAction(p::performReset); // We have to do the reset ourselves
+            }))).doOnTerminate(this::unlock).subscribe(); //XXX eliminate all subscribe calls!
         }
     }
 
@@ -132,14 +124,9 @@ public class PlaceManager implements HasHandlers {
         stopError();
     }
 
-    @Override
-    public void fireEvent(GwtEvent<?> event) { getEventBus().fireEventFromSource(event, this); }
+    private void fireEvent(GwtEvent<?> event) { getEventBus().fireEventFromSource(event, this); }
 
-    String getBrowserHistoryToken() { return historian.getToken(); }
-
-    public PlaceRequest getCurrentPlaceRequest() {
-        return place != null ? place : new PlaceRequest.Builder().build();
-    }
+    public PlaceRequest getCurrentPlaceRequest() { return place; }
 
     public EventBus getEventBus() { return eventBus; }
 
@@ -196,7 +183,7 @@ public class PlaceManager implements HasHandlers {
                 revealDefaultPlace();
             } else {
                 place = tokenFormatter.toPlaceRequest(historyToken);
-                doRevealPlace(getCurrentPlaceRequest(), true);
+                doRevealPlace(getCurrentPlaceRequest());
             }
         } catch (TokenFormatException e) {
             unlock();
@@ -210,7 +197,7 @@ public class PlaceManager implements HasHandlers {
     /**
      * Reveals the default place. This is invoked when the history token is empty and no places
      * handled it. Application-specific place managers should build a {@link PlaceRequest}
-     * corresponding to their default presenter and call {@link #revealPlace(PlaceRequest, boolean)}
+     * corresponding to their default presenter and call {@link #revealPlace(PlaceRequest, UpdateBrowserUrl)}
      * with it. Consider passing {@code false} as the second parameter of {@code revealPlace},
      * otherwise a new token will be inserted in the browser's history and hitting the browser's
      * <em>back</em> button will not take the user out of the application.
@@ -218,26 +205,28 @@ public class PlaceManager implements HasHandlers {
      * <b>Important!</b> Make sure you build a valid {@link PlaceRequest} and that the user has access
      * to it, otherwise you might create an infinite loop.
      */
-    public void revealDefaultPlace() { revealPlace(defaultPlaceRequest, false); }
+    public void revealDefaultPlace() { revealPlace(defaultPlaceRequest, UpdateBrowserUrl.NOOP); }
 
-    public void revealErrorPlace(String invalidHistoryToken) { revealPlace(errorPlaceRequest, false); }
+    public void revealErrorPlace(String invalidHistoryToken) { revealPlace(errorPlaceRequest, UpdateBrowserUrl.NOOP); }
 
     public void revealUnauthorizedPlace(String unauthorizedHistoryToken) {
-        revealPlace(unauthorizedPlaceRequest, false);
+        revealPlace(unauthorizedPlaceRequest, UpdateBrowserUrl.NOOP);
     }
 
-    public void revealPlace(PlaceRequest request) { revealPlace(request, true); }
+    public void revealPlace(PlaceRequest request) { revealPlace(request, UpdateBrowserUrl.NEW); }
 
-    public void revealPlace(PlaceRequest request, boolean updateBrowserUrl) {
+    public void revealPlace(PlaceRequest request, UpdateBrowserUrl mode) {
+        requireNonNull(request, "request required");
         if (locked) {
-            deferredNavigation = () -> revealPlace(request, updateBrowserUrl);
+            deferredNavigation = () -> revealPlace(request, mode);
             return;
         }
         if (!getLock()) {
             return;
         }
         place = request;
-        doRevealPlace(request, updateBrowserUrl);
+        updateHistory(request, mode);
+        doRevealPlace(request);
     }
 
     /**
@@ -248,7 +237,7 @@ public class PlaceManager implements HasHandlers {
         currentHistoryToken = historyToken;
     }
 
-    void setBrowserHistoryToken(String historyToken, boolean issueEvent) {
+    @VisibleForTesting void setBrowserHistoryToken(String historyToken, boolean issueEvent) {
         historian.newItem(historyToken, issueEvent);
     }
 
@@ -315,17 +304,24 @@ public class PlaceManager implements HasHandlers {
         }
     }
 
-    public void updateHistory(PlaceRequest request, boolean updateBrowserUrl) {
+    public enum UpdateBrowserUrl {
+        /** Does not update the browser URL. */ NOOP(false),
+        /** Updates the browser URL adding a new history item. */ NEW(true),
+        /** Updates the browser URL replacing the last history item. */ REPLACE(true);
+        private final boolean change;
+        UpdateBrowserUrl(boolean change) { this.change = change;}
+    }
+
+    public void updateHistory(PlaceRequest request, UpdateBrowserUrl mode) {
         try {
-            // Make sure the request match
-            assert request.matchesNameToken(getCurrentPlaceRequest()) : "Internal error, PlaceRequest passed to" +
-                    "updateHistory doesn't match the tail of the place hierarchy.";
-            place = request;
-            if (updateBrowserUrl) {
+            // Make sure the request match, externally can only be used to change parameters
+            assert request.matchesNameToken(place) : "name token mismatch";
+            place = request; // update it, parameter can be different (this is the whole point)
+            if (mode.change) {
                 String historyToken = tokenFormatter.toPlaceToken(place);
-                String browserHistoryToken = getBrowserHistoryToken();
-                if (browserHistoryToken == null || !browserHistoryToken.equals(historyToken)) {
-                    setBrowserHistoryToken(historyToken, false);
+                if (!Objects.equals(historyToken, historian.getToken())) switch (mode) {
+                    case NEW: historian.newItem(historyToken, false); break;
+                    case REPLACE: historian.replaceItem(historyToken, false); break;
                 }
                 saveHistoryToken(historyToken);
             }
@@ -367,6 +363,22 @@ public class PlaceManager implements HasHandlers {
         @Override protected void dispatch(LockInteractionHandler handler) { handler.onLockInteraction(this); }
         public interface LockInteractionHandler extends EventHandler {
             void onLockInteraction(LockInteractionEvent lockInteractionEvent);
+        }
+    }
+
+    public interface Historian {
+        String getToken();
+        void newItem(String token, boolean issueEvent);
+        void replaceItem(String token, boolean issueEvent);
+        HandlerRegistration addValueChangeHandler(ValueChangeHandler<String> handler);
+    }
+
+    public static class DefaultHistorian implements Historian {
+        @Override public String getToken() { return History.getToken();}
+        @Override public void newItem(String token, boolean issueEvent) { History.newItem(token, issueEvent);}
+        @Override public void replaceItem(String token, boolean issueEvent) { History.replaceItem(token, issueEvent);}
+        @Override public HandlerRegistration addValueChangeHandler(ValueChangeHandler<String> handler) {
+            return History.addValueChangeHandler(handler);
         }
     }
 }

@@ -13,7 +13,9 @@ import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.SimpleEventBus;
 import com.intendia.reactivity.client.PlaceManager.NavigationEvent;
 import com.intendia.reactivity.client.PlaceManager.NavigationEvent.NavigationHandler;
+import com.intendia.reactivity.client.PlaceManager.UpdateBrowserUrl;
 import com.intendia.reactivity.client.RootPresenter.RootContentSlot;
+import com.intendia.reactivity.client.TestPlaceManager.MyMock;
 import dagger.Binds;
 import dagger.Component;
 import dagger.MembersInjector;
@@ -35,9 +37,9 @@ public class PlaceManagerImplTest {
     @Module interface MyModule {
         @Provides @Singleton static EventBus provideEventBus() { return new SimpleEventBus(); }
         @Binds @Singleton TokenFormatter bindTokenFormatter(ParameterTokenFormatter o);
-        @Binds @Singleton PlaceManager bindPlaceManager(PlaceManagerTestUtil o);
-        @Provides @Singleton static PlaceManagerWindowMethodsTestUtil providePlaceManagerWindowMethodsTestUtil() {
-            return mock(PlaceManagerWindowMethodsTestUtil.class);
+        @Binds @Singleton PlaceManager bindPlaceManager(TestPlaceManager o);
+        @Provides @Singleton static MyMock providePlaceManagerWindowMethodsTestUtil() {
+            return mock(MyMock.class);
         }
         @Provides static View provideView() { return mock(View.class); }
         @Provides @Singleton static TestScheduler provideTestScheduler() { return new TestScheduler(); }
@@ -98,7 +100,7 @@ public class PlaceManagerImplTest {
 
         @Override public Completable prepareFromRequest(PlaceRequest request) {
             super.prepareFromRequest(request);
-            placeManager.revealPlace(PlaceRequest.of("basic").build(), false);
+            placeManager.revealPlace(PlaceRequest.of("basic").build(), UpdateBrowserUrl.NOOP);
             return Completable.never();
         }
 
@@ -127,7 +129,7 @@ public class PlaceManagerImplTest {
 
     // SUT
     @Inject PlaceManager placeManager;
-    @Inject PlaceManagerWindowMethodsTestUtil gwtWindowMethods;
+    @Inject MyMock gwtWindowMethods;
     @Inject NavigationEventSpy navigationHandler;
     @Inject EventBus eventBus;
     @Inject BasicPresenter presenterBasic;

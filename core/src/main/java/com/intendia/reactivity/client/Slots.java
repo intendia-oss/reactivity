@@ -24,7 +24,7 @@ public interface Slots {
     interface IsSingleSlot<T extends PresenterWidget<?>> extends IsSlot<T> {}
 
     /** A slot that can reveal a child presenter. */
-    interface RevealableSlot<T extends PresenterWidget<?>> extends IsSingleSlot<T> {
+    interface RevealableSlot<T extends PresenterWidget<?>> extends RemovableSlot<T>, IsSingleSlot<T> {
         @CanIgnoreReturnValue Completable reveal(T presenter);
     }
 

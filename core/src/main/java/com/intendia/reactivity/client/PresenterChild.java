@@ -5,9 +5,7 @@ import static io.reactivex.Completable.complete;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.intendia.reactivity.client.Slots.RevealableSlot;
 import io.reactivex.Completable;
-import javax.inject.Singleton;
 
-@Singleton
 public abstract class PresenterChild<V extends View> extends PresenterWidget<V> {
     protected final RevealableSlot<? super PresenterWidget<?>> parentSlot;
 

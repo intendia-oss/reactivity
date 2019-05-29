@@ -20,6 +20,7 @@ import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+@Singleton
 public class RootPresenter extends PresenterWidget<RootPresenter.RootView> {
 
     public static class RootView implements View {

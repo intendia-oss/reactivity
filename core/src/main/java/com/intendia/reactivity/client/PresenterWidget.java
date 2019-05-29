@@ -62,13 +62,40 @@ public abstract class PresenterWidget<V extends View> implements IsWidget {
     public void addToPopupSlot(PresenterWidget<? extends PopupView> child) { addToSlot(POPUP_SLOT, child); }
 
     public <T extends PresenterWidget<?>> void addToSlot(MultiSlot<? super T> slot, T child) {
-        requireNonNull(child, "cannot add null to a slot");
-        if (child.adopted != null && child.adopted.by == this && child.adopted.at == slot) return;
-
+        requireNonNull(child, "child required");
+        if (alreadyAdopted(slot, child)) return;
         adoptChild(slot, child);
 
         if (!child.isPopup()) getView().addToSlot(slot, child);
         if (isVisible()) child.internalReveal();
+    }
+
+    public <T extends PresenterWidget<?>> void setInSlot(IsSingleSlot<? super T> slot, T child) {
+        setInSlot(slot, child, true);
+    }
+
+    public <T extends PresenterWidget<?>> void setInSlot(IsSingleSlot<? super T> slot, T child, boolean performReset) {
+        requireNonNull(child, "child required");
+        if (alreadyAdopted(slot, child)) return;
+        adoptChild(slot, child);
+        internalClearSlot(slot, child);
+
+        if (!child.isPopup()) getView().setInSlot(slot, child);
+        if (isVisible()) {
+            child.internalReveal();
+            if (performReset) performReset();
+        }
+    }
+
+    private <T extends PresenterWidget<?>> void adoptChild(IsSlot<T> slot, PresenterWidget<?> child) {
+        if (alreadyAdopted(slot, child)) return;
+        if (child.adopted != null) child.orphan();
+        child.adopted = new Papers(this, slot);
+        children.add(child);
+    }
+
+    private <T extends PresenterWidget<?>> boolean alreadyAdopted(IsSlot<T> slot, PresenterWidget<?> child) {
+        return child.adopted != null && child.adopted.by == this && child.adopted.at == slot;
     }
 
     public void clearSlot(RemovableSlot<?> slot) {
@@ -97,21 +124,14 @@ public abstract class PresenterWidget<V extends View> implements IsWidget {
         child.orphan();
     }
 
-    public <T extends PresenterWidget<?>> void setInSlot(IsSingleSlot<? super T> slot, T child) {
-        setInSlot(slot, child, true);
-    }
-
-    public <T extends PresenterWidget<?>> void setInSlot(IsSingleSlot<? super T> slot, T child, boolean performReset) {
-        requireNonNull(child, "child required");
-        adoptChild(slot, child);
-        internalClearSlot(slot, child);
-
-        if (!child.isPopup()) getView().setInSlot(slot, child);
-
-        if (isVisible()) {
-            child.internalReveal();
-            if (performReset) performReset();
+    private void orphan() {
+        if (adopted == null) return;
+        if (!adopted.at.isRemovable()) {
+            throw new IllegalArgumentException("cannot remove a child from a permanent slot");
         }
+        internalHide();
+        adopted.by.children.remove(this);
+        adopted = null;
     }
 
     public @Nullable <T extends PresenterWidget<?>> T getChild(IsSingleSlot<T> slot) {
@@ -125,7 +145,6 @@ public abstract class PresenterWidget<V extends View> implements IsWidget {
         return result;
     }
 
-    /** @deprecated use {@link #onReveal(Completable)} or any of it Rx variants instead */
     protected void onReveal() {}
 
     @VisibleForTesting void internalReveal() {
@@ -151,7 +170,6 @@ public abstract class PresenterWidget<V extends View> implements IsWidget {
     public void onReveal(Maybe<?> o) { onReveal(o.ignoreElement()); }
     public void onReveal(Completable o) { revealObservables.add(o); }
 
-    /** @deprecated use {@link #onReveal(Observable)} combined with {@link #reset()} instead */
     protected void onReset() {}
     protected Observable<?> reset() { return reset; }
 
@@ -174,7 +192,6 @@ public abstract class PresenterWidget<V extends View> implements IsWidget {
         if (isPopup()) ((PopupView) getView()).show();
     }
 
-    /** @deprecated use {@link #onReveal(Completable)} or any of it Rx variants instead */
     protected void onHide() {}
 
     void internalHide() {
@@ -185,7 +202,6 @@ public abstract class PresenterWidget<V extends View> implements IsWidget {
             popup.set(Disposables.empty());
             ((PopupView) this.getView()).hide();
         }
-        //unregisterVisibleHandlers();
         visible = false;
         onHide();
 
@@ -193,24 +209,7 @@ public abstract class PresenterWidget<V extends View> implements IsWidget {
         revealSubscriptions.clear();
     }
 
-    private <T extends PresenterWidget<?>> void adoptChild(IsSlot<T> slot, PresenterWidget<?> child) {
-        if (child.adopted != null && child.adopted.by == this && child.adopted.at == slot) return;
-        if (child.adopted != null) child.orphan();
-        child.adopted = new Papers(this, slot);
-        children.add(child);
-    }
-
     boolean isPopup() { return adopted != null && adopted.at.isPopup(); }
-
-    private void orphan() {
-        if (adopted == null) return;
-        if (!adopted.at.isRemovable()) {
-            throw new IllegalArgumentException("Cannot remove a child from a permanent slot");
-        }
-        internalHide();
-        adopted.by.children.remove(this);
-        adopted = null;
-    }
 
     private static CompletableTransformer subscriptionHandler = o -> o // default handler
             .doOnError(GWT::reportUncaughtException)
@@ -220,7 +219,7 @@ public abstract class PresenterWidget<V extends View> implements IsWidget {
         subscriptionHandler = requireNonNull(impl, "subscription handler required");
     }
 
-    @SuppressWarnings("unchecked") private void subscribe(Completable o, List<Disposable> to) {
+    private void subscribe(Completable o, List<Disposable> to) {
         to.add(o.compose(subscriptionHandler).subscribe());
     }
 

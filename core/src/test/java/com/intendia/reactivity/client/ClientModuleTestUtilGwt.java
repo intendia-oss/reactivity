@@ -2,9 +2,9 @@ package com.intendia.reactivity.client;
 
 import static org.mockito.Mockito.mock;
 
-import com.google.gwt.place.shared.PlaceHistoryHandler;
 import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.SimpleEventBus;
+import com.intendia.reactivity.client.PlaceManager.Historian;
 import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
@@ -23,8 +23,7 @@ public abstract class ClientModuleTestUtilGwt {
     // default module
     @Provides @Singleton static EventBus provideEventBus() { return new SimpleEventBus(); }
     @Provides @Singleton static PlaceManager providePlaceManager(EventBus bus, Set<Place> places,
-            MainPresenterTestUtilGwt.MyPlace home) {
-        return new PlaceManager(bus, mock(ParameterTokenFormatter.class),
-                mock(PlaceHistoryHandler.Historian.class), places,  home, home, home) {};
+            MainPresenterTestUtilGwt.MyPlace p) {
+        return new PlaceManager(bus, mock(ParameterTokenFormatter.class), mock(Historian.class), places, p, p, p) {};
     }
 }
