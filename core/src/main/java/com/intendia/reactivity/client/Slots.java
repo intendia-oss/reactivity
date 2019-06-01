@@ -56,16 +56,7 @@ public interface Slots {
      * A slot that can take multiple PopupPresenters Acts like {@link MultiSlot} except will hide and show the
      * PopupPresenter when appropriate.
      */
-    class PopupSlot<T extends PresenterWidget<? extends PopupView>> extends MultiSlot<T> implements RevealableSlot<T> {
-        protected final Single<? extends PresenterWidget<?>> proxy;
-        protected PopupSlot(Single<? extends PresenterWidget<?>> proxy) { this.proxy = proxy; }
-        @Override public Completable reveal(T presenter) {
-            return proxy.flatMapCompletable(p -> {
-                Completable reveal = p instanceof PresenterChild ? ((PresenterChild) p).forceReveal() : complete();
-                return reveal.andThen(Completable.fromAction(() -> p.addToPopupSlot(presenter)));
-            }).compose(AsPromise);
-        }
-    }
+    class PopupSlot<T extends PresenterWidget<? extends PopupView>> extends MultiSlot<T> {}
 
     /** A slot that can only take one presenter at a time. */
     class SingleSlot<T extends PresenterWidget<?>> implements IsSingleSlot<T>, RemovableSlot<T> {}

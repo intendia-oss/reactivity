@@ -33,7 +33,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public abstract class PresenterWidget<V extends View> implements IsWidget {
-    private final PopupSlot<PresenterWidget<? extends PopupView>> POPUP_SLOT = new PopupSlot<>(null);
+    private final PopupSlot<PresenterWidget<? extends PopupView>> POPUP_SLOT = new PopupSlot<>();
 
     @Nullable Papers adopted;
     protected boolean visible;

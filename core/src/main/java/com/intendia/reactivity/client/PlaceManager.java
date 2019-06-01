@@ -1,7 +1,6 @@
 package com.intendia.reactivity.client;
 
 import static io.reactivex.Completable.defer;
-import static io.reactivex.Completable.fromAction;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static java.util.Objects.requireNonNull;
 
@@ -109,7 +108,8 @@ public class PlaceManager {
                 if (hasPendingNavigation()) return Completable.complete();
 
                 if (!p.isVisible()) return p.forceReveal(); // This will trigger a reset in due time
-                else return fromAction(p::performReset); // We have to do the reset ourselves
+                else p.performReset(); // Otherwise, we have to do the reset ourselves
+                return Completable.complete();
             }))).doOnTerminate(this::unlock).subscribe(); //XXX eliminate all subscribe calls!
         }
     }
