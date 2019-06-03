@@ -53,10 +53,10 @@ public class RootPresenter extends PresenterWidget<RootPresenter.RootView> {
         }
     }
 
-    public static @Singleton class RootContentSlot implements RevealableSlot<PresenterWidget<?>> {
+    public static @Singleton class RootContentSlot implements RevealableSlot<RevealableComponent> {
         private final Provider<RootPresenter> root;
         @Inject RootContentSlot(Provider<RootPresenter> root) { this.root = root; }
-        @Override public Completable reveal(PresenterWidget<?> presenter) {
+        @Override public Completable reveal(RevealableComponent presenter) {
             return Completable.fromAction(() -> root.get().setInSlot(this, presenter)).compose(AsPromise);
         }
     }

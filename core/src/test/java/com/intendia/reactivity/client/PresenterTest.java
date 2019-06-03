@@ -1,5 +1,6 @@
 package com.intendia.reactivity.client;
 
+import static io.reactivex.Completable.complete;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -11,12 +12,15 @@ import org.junit.Test;
 
 public class PresenterTest {
 
-    interface TestSlot extends RevealableSlot<PresenterWidget<?>> {}
+    interface TestSlot extends RevealableSlot<RevealableComponent> {}
 
     static class TestPresenter extends PresenterChild<View> {
         public int revealInParentCalled;
         TestPresenter() { super(mock(View.class), mock(TestSlot.class)); }
-        @Override public Completable revealInParent() { return Completable.fromAction(() -> revealInParentCalled++); }
+        @Override public Completable forceReveal() {
+            if (isVisible()) return complete();
+            return Completable.fromAction(() -> revealInParentCalled++);
+        }
     }
 
     // SUT

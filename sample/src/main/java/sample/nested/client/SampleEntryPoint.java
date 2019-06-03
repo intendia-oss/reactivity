@@ -3,12 +3,17 @@ package sample.nested.client;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.RunAsyncCallback;
-import com.intendia.reactivity.client.DefaultModule;
+import com.google.web.bindery.event.shared.EventBus;
+import com.google.web.bindery.event.shared.SimpleEventBus;
+import com.intendia.reactivity.client.ParameterTokenFormatter;
 import com.intendia.reactivity.client.Place;
 import com.intendia.reactivity.client.PlaceManager;
+import com.intendia.reactivity.client.PlaceManager.DefaultHistorian;
 import com.intendia.reactivity.client.PlaceManager.DefaultPlace;
 import com.intendia.reactivity.client.PlaceManager.ErrorPlace;
+import com.intendia.reactivity.client.PlaceManager.Historian;
 import com.intendia.reactivity.client.PlaceManager.UnauthorizedPlace;
+import com.intendia.reactivity.client.TokenFormatter;
 import dagger.Binds;
 import dagger.Component;
 import dagger.Module;
@@ -64,5 +69,12 @@ public class SampleEntryPoint implements EntryPoint {
                 @Override public void onSuccess() { s.onSuccess(builder.get()); }
             }));
         }
+    }
+
+    @Module
+    public interface DefaultModule {
+        @Provides @Singleton static EventBus provideEventBus() { return new SimpleEventBus(); }
+        @Provides @Singleton static Historian provideHistorian() { return new DefaultHistorian(); }
+        @Binds @Singleton TokenFormatter provideTokenFormatter(ParameterTokenFormatter o);
     }
 }

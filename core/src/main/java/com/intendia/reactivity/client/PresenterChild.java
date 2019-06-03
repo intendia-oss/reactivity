@@ -2,27 +2,16 @@ package com.intendia.reactivity.client;
 
 import static io.reactivex.Completable.complete;
 
-import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.intendia.reactivity.client.Slots.RevealableSlot;
 import io.reactivex.Completable;
 
-public abstract class PresenterChild<V extends View> extends PresenterWidget<V> {
-    protected final RevealableSlot<? super PresenterWidget<?>> parentSlot;
+public abstract class PresenterChild<V extends View> extends PresenterWidget<V> implements RevealableComponent {
 
-    protected PresenterChild(V view, RevealableSlot<PresenterWidget<?>> parentSlot) {
+    protected PresenterChild(V view, RevealableSlot<RevealableComponent> parentSlot) {
         super(view);
-        this.parentSlot = parentSlot;
+        mutate().put(RevealableComponent.PARENT_SLOT, parentSlot);
+        mutate().put(RevealableComponent.PREPARE_FROM_REQUEST, this::prepareFromRequest);
     }
 
-    public @CanIgnoreReturnValue Completable forceReveal() {
-        return !isVisible() ? revealInParent() : complete();
-    }
-
-    protected @CanIgnoreReturnValue Completable revealInParent() {
-        return parentSlot.reveal(this).compose(Slots.AsPromise);
-    }
-
-    public Completable prepareFromRequest(PlaceRequest request) {
-        return complete();
-    }
+    protected Completable prepareFromRequest(PlaceRequest request) { return complete();}
 }

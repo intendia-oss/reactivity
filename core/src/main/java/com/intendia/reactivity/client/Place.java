@@ -21,7 +21,7 @@ public class Place {
     public String getNameToken() { return nameToken; }
     public boolean matchesRequest(PlaceRequest request) { return request.matchesNameToken(getNameToken()); }
     public boolean canReveal(PlaceRequest request) { return gatekeeper.canReveal(request); }
-    public Single<? extends PresenterChild<?>> getPresenter() { return presenter; }
+    public Single<? extends RevealableComponent> getPresenter() { return presenter; }
 
     @Override public final boolean equals(Object o) { return o instanceof Place && equals((Place) o); }
     private boolean equals(Place o) { return nameToken.equals(o.nameToken); }

@@ -82,7 +82,7 @@ public class PlaceManagerImplTest {
             return Completable.never();
         }
 
-        @Override protected Completable revealInParent() { return Completable.fromAction(() -> ++revealInParentCalls); }
+        protected Completable revealInParent() { return Completable.fromAction(() -> ++revealInParentCalls); }
     }
 
     static class RedirectPlace extends Place {
@@ -103,8 +103,6 @@ public class PlaceManagerImplTest {
             placeManager.revealPlace(PlaceRequest.of("basic").build(), UpdateBrowserUrl.NOOP);
             return Completable.never();
         }
-
-        @Override protected Completable revealInParent() { return Completable.complete(); }
     }
 
     static class RedirectNoHistoryPlace extends Place {

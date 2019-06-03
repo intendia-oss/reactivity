@@ -1,5 +1,6 @@
 package com.intendia.reactivity.client;
 
+import static com.intendia.reactivity.client.RevealableComponent.PREPARE_FROM_REQUEST;
 import static io.reactivex.Completable.defer;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static java.util.Objects.requireNonNull;
@@ -100,17 +101,19 @@ public class PlaceManager {
             unlock();
             illegalAccess(tokenFormatter.toPlaceToken(request));
         } else {
-            matches.get().getPresenter().flatMapCompletable(p -> p.prepareFromRequest(request).andThen(defer(() -> {
-                // User might manually update place request in prepareFrom request, so always read it again
-                fireEvent(new NavigationEvent(getCurrentPlaceRequest()));
+            matches.get().getPresenter().flatMapCompletable(p -> {
+                return p.req(PREPARE_FROM_REQUEST).apply(request).andThen(defer(() -> {
+                    // User might manually update place request in prepareFrom request, so always read it again
+                    fireEvent(new NavigationEvent(getCurrentPlaceRequest()));
 
-                // Reveal only if there are no pending navigation requests
-                if (hasPendingNavigation()) return Completable.complete();
+                    // Reveal only if there are no pending navigation requests
+                    if (hasPendingNavigation()) return Completable.complete();
 
-                if (!p.isVisible()) return p.forceReveal(); // This will trigger a reset in due time
-                else p.performReset(); // Otherwise, we have to do the reset ourselves
-                return Completable.complete();
-            }))).doOnTerminate(this::unlock).subscribe(); //XXX eliminate all subscribe calls!
+                    if (!p.isVisible()) return p.forceReveal(); // This will trigger a reset in due time
+                    else p.performReset(); // Otherwise, we have to do the reset ourselves
+                    return Completable.complete();
+                }));
+            }).doOnTerminate(this::unlock).subscribe(); //XXX eliminate all subscribe calls!
         }
     }
 

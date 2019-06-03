@@ -26,20 +26,20 @@
     </build>
 
     <dependencies>
-        <dependency><groupId>com.google.dagger</groupId><artifactId>dagger-gwt</artifactId><version>${dagger.version}</version></dependency>
         <dependency><groupId>com.google.guava</groupId><artifactId>guava</artifactId></dependency>
         <dependency><groupId>com.google.guava</groupId><artifactId>guava-gwt</artifactId><version>${guava.version}</version></dependency>
         <dependency><groupId>com.google.gwt</groupId><artifactId>gwt-user</artifactId><scope>provided</scope></dependency>
         <dependency><groupId>com.google.gwt</groupId><artifactId>gwt-dev</artifactId><scope>provided</scope></dependency>
         <dependency><groupId>com.intendia.gwt</groupId><artifactId>rxjava2-gwt</artifactId><version>2.1.2-beta1</version></dependency>
         <dependency><groupId>com.intendia.gwt.rxgwt2</groupId><artifactId>rxgwt</artifactId><version>2.2</version></dependency>
-
-        <!-- Annotation processor -->
-        <dependency><groupId>com.google.dagger</groupId><artifactId>dagger-compiler</artifactId><version>${dagger.version}</version><scope>provided</scope></dependency>
-
+        <dependency><groupId>com.intendia.qualifier</groupId><artifactId>qualifier</artifactId><version>0.21</version></dependency>
+        <dependency><groupId>com.intendia.qualifier</groupId><artifactId>qualifier</artifactId><classifier>sources</classifier><version>0.21</version></dependency>
+        <dependency><groupId>javax.inject</groupId><artifactId>javax.inject</artifactId><version>1</version></dependency>
         <!-- Test dependencies -->
-        <dependency><groupId>com.google.gwt.gwtmockito</groupId><artifactId>gwtmockito</artifactId><version>1.1.6</version></dependency>
-        <dependency><groupId>junit</groupId><artifactId>junit</artifactId></dependency>
-        <dependency><groupId>org.mockito</groupId><artifactId>mockito-core</artifactId><version>${mockito.version}</version></dependency>
+        <dependency><groupId>com.google.dagger</groupId><artifactId>dagger-gwt</artifactId><version>${dagger.version}</version><scope>test</scope></dependency>
+        <dependency><groupId>com.google.dagger</groupId><artifactId>dagger-compiler</artifactId><version>${dagger.version}</version><scope>test</scope></dependency>
+        <dependency><groupId>com.google.gwt.gwtmockito</groupId><artifactId>gwtmockito</artifactId><version>1.1.6</version><scope>test</scope></dependency>
+        <dependency><groupId>junit</groupId><artifactId>junit</artifactId><scope>test</scope></dependency>
+        <dependency><groupId>org.mockito</groupId><artifactId>mockito-core</artifactId><version>${mockito.version}</version><scope>test</scope></dependency>
     </dependencies>
 </project>

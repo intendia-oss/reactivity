@@ -38,11 +38,12 @@
 
     <dependencies><!--@formatter:off-->
         <dependency><groupId>com.google.gwt</groupId><artifactId>gwt-user</artifactId></dependency>
-        <dependency><groupId>com.google.gwt</groupId><artifactId>gwt-servlet</artifactId></dependency>
-        <dependency><groupId>com.google.dagger</groupId><artifactId>dagger-compiler</artifactId><version>${dagger.version}</version><scope>provided</scope></dependency>
+        <dependency><groupId>com.google.gwt</groupId><artifactId>gwt-dev</artifactId></dependency>
+        <dependency><groupId>com.google.dagger</groupId><artifactId>dagger-gwt</artifactId><version>${dagger.version}</version></dependency>
         <dependency><groupId>com.intendia.reactivity</groupId><artifactId>reactivity-core</artifactId><type>gwt-lib</type><version>${project.version}</version></dependency>
-
+        <!-- Annotation processor -->
+        <dependency><groupId>com.google.dagger</groupId><artifactId>dagger-compiler</artifactId><version>${dagger.version}</version><scope>provided</scope></dependency>
         <!-- Test dependencies -->
-        <dependency><groupId>junit</groupId><artifactId>junit</artifactId></dependency>
+        <dependency><groupId>junit</groupId><artifactId>junit</artifactId><scope>test</scope></dependency>
     </dependencies><!--@formatter:on-->
 </project>

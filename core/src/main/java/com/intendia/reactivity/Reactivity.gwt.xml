@@ -4,8 +4,8 @@
     <inherits name='com.google.gwt.user.User'/>
     <inherits name='com.google.gwt.place.Place'/>
     <inherits name="com.google.common.util.concurrent.Concurrent"/>
+    <inherits name="com.intendia.qualifier.Qualify"/>
     <inherits name="com.intendia.rxgwt2.RxUser"/>
-    <inherits name="dagger.Dagger"/>
 
     <!-- Specify the paths for translatable code-->
     <source path='client' excludes="**/*Test.java,**/*TestSuite.java,**/*TestUtil.java"/>

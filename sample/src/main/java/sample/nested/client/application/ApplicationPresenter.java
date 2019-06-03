@@ -15,7 +15,7 @@ import com.google.web.bindery.event.shared.EventBus;
 import com.intendia.reactivity.client.CompositeView;
 import com.intendia.reactivity.client.PlaceManager.LockInteractionEvent;
 import com.intendia.reactivity.client.PresenterChild;
-import com.intendia.reactivity.client.PresenterWidget;
+import com.intendia.reactivity.client.RevealableComponent;
 import com.intendia.reactivity.client.RootPresenter.RootContentSlot;
 import com.intendia.reactivity.client.Slots.NestedSlot;
 import com.intendia.reactivity.client.View;
@@ -55,7 +55,7 @@ public class ApplicationPresenter extends PresenterChild<ApplicationPresenter.My
         }
     }
 
-    public static @Singleton class MainContent extends NestedSlot<PresenterWidget<?>> {
+    public static @Singleton class MainContent extends NestedSlot<RevealableComponent> {
         @Inject MainContent(Lazy<ApplicationPresenter> presenter) { super(Single.fromCallable(presenter::get)); }
     }
 
