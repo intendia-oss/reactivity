@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.intendia.reactivity</groupId>
     <artifactId>reactivity-parent</artifactId>
-    <version>0.1</version>
+    <version>HEAD-SNAPSHOT</version>
     <packaging>pom</packaging>
     <description>A reactive model-view-presenter lib.</description>
     <url>https://github.com/intendia-oss/reactivity</url>

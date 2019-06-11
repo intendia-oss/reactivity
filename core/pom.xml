@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.intendia.reactivity</groupId>
         <artifactId>reactivity-parent</artifactId>
-        <version>0.1</version>
+        <version>HEAD-SNAPSHOT</version>
     </parent>
     <artifactId>reactivity-core</artifactId>
     <packaging>gwt-lib</packaging>
