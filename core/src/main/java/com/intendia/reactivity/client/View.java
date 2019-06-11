@@ -11,7 +11,6 @@ import com.intendia.reactivity.client.Slots.IsSingleSlot;
 import com.intendia.reactivity.client.Slots.IsSlot;
 import com.intendia.reactivity.client.Slots.MultiSlot;
 import com.intendia.reactivity.client.Slots.OrderedSlot;
-import com.intendia.reactivity.client.Slots.RemovableSlot;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -38,7 +37,7 @@ public interface View {
         slot(slot).setInSlot(slot, requireNonNull(content, "content required"));
     }
 
-    default void clearSlot(RemovableSlot<?> slot) {
+    default void clearSlot(IsSlot<?> slot) {
         slot(slot).clearSlot(slot);
     }
 
@@ -46,7 +45,7 @@ public interface View {
         slots().put(slot, new View() {
             @Override public void setInSlot(IsSingleSlot<?> s, IsWidget c) { container.setWidget(c); }
             @Override public void removeFromSlot(IsSlot slot, IsWidget content) { container.setWidget(null); }
-            @Override public void clearSlot(RemovableSlot<?> slot) { container.setWidget(null); }
+            @Override public void clearSlot(IsSlot<?> slot) { container.setWidget(null); }
         });
     }
 
@@ -56,7 +55,7 @@ public interface View {
                 container.clear(); if (c != null) container.add(c.asWidget());
             }
             @Override public void removeFromSlot(IsSlot slot, IsWidget content) { container.clear(); }
-            @Override public void clearSlot(RemovableSlot<?> slot) { container.clear(); }
+            @Override public void clearSlot(IsSlot<?> slot) { container.clear(); }
         });
     }
 
@@ -81,7 +80,7 @@ public interface View {
                 list.remove(cc);
                 container.remove(content.asWidget());
             }
-            @Override public void clearSlot(RemovableSlot<?> slot) {
+            @Override public void clearSlot(IsSlot<?> slot) {
                 list.clear();
                 container.clear();
             }

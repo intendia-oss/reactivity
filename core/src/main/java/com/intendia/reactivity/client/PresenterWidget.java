@@ -13,8 +13,6 @@ import com.intendia.reactivity.client.Slots.IsSingleSlot;
 import com.intendia.reactivity.client.Slots.IsSlot;
 import com.intendia.reactivity.client.Slots.MultiSlot;
 import com.intendia.reactivity.client.Slots.OrderedSlot;
-import com.intendia.reactivity.client.Slots.PopupSlot;
-import com.intendia.reactivity.client.Slots.RemovableSlot;
 import io.reactivex.Completable;
 import io.reactivex.CompletableTransformer;
 import io.reactivex.Flowable;
@@ -28,13 +26,12 @@ import io.reactivex.subjects.PublishSubject;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import javax.annotation.Nullable;
 
-public abstract class PresenterWidget<V extends View> implements Component, IsWidget {
-    private final PopupSlot<PresenterWidget<? extends PopupView>> POPUP_SLOT = new PopupSlot<>();
-
+public abstract class PresenterWidget<V extends View> implements Component, PopupContainer, IsWidget {
     protected boolean visible;
     private boolean isResetting;
 
@@ -64,128 +61,98 @@ public abstract class PresenterWidget<V extends View> implements Component, IsWi
     @Override public final boolean equals(Object obj) { return super.equals(obj); }
     @Override public final int hashCode() { return super.hashCode(); }
 
-    @Override public void addToPopupSlot(PresenterWidget<? extends PopupView> child) { addToSlot(POPUP_SLOT, child); }
-
     @Override public <T extends Component> void addToSlot(MultiSlot<? super T> slot, T child) {
-        requireNonNull(child, "child required");
-        if (alreadyAdopted(slot, child)) return;
-        adoptChild(slot, child);
-
-        if (!child.isPopup()) getView().addToSlot(slot, (IsWidget) child);
-        if (isVisible()) ((PresenterWidget) child).internalReveal();
+        internalAddToSlot(slot, child);
     }
 
     @Override public <T extends Component> void setInSlot(IsSingleSlot<? super T> slot, T child) {
-        setInSlot(slot, child, true);
+        internalAddToSlot(slot, child);
     }
 
-    @Override public <T extends Component> void setInSlot(IsSingleSlot<? super T> slot, T child, boolean performReset) {
+    private <T extends Component> void internalAddToSlot(IsSlot<? super T> slot, T child) {
         requireNonNull(child, "child required");
-        if (alreadyAdopted(slot, child)) return;
-        adoptChild(slot, child);
-        internalClearSlot(slot, child);
+        if (child.opt(ADOPTED).map(p -> p.by == this && p.at == slot).orElse(false)) return; // already adopted?
+        // adopt child
+        child.orphan();
+        child.mutate().put(ADOPTED, new Papers(this, slot));
+        children.add(child);
 
-        if (!child.isPopup()) getView().setInSlot(slot, (IsWidget) child);
+        if (slot instanceof IsSingleSlot) internalClearSlot(slot, child);
+        if (!slot.isPopup()) {
+            if (slot instanceof IsSingleSlot) getView().setInSlot((IsSingleSlot) slot, (IsWidget) child);
+            else if (slot instanceof MultiSlot) getView().addToSlot((MultiSlot) slot, (IsWidget) child);
+            else throw new UnsupportedOperationException("unsupported slot type " + slot);
+        }
         if (isVisible()) {
             ((PresenterWidget) child).internalReveal();
-            if (performReset) performReset();
+            performReset();
         }
     }
 
-    private <T extends Component> void adoptChild(IsSlot<T> slot, Component child) {
-        if (alreadyAdopted(slot, child)) return;
-        if (child.papers() != null) ((PresenterWidget) child).orphan();
-        child.mutate().put(ADOPTED, new Papers(this, slot));
-        children.add(child);
-    }
-
-    private <T extends Component> boolean alreadyAdopted(IsSlot<T> slot, Component child) {
-        @Nullable Papers adopted = child.data(ADOPTED);
-        return adopted != null && adopted.by == this && adopted.at == slot;
-    }
-
-    @Override public void clearSlot(RemovableSlot<?> slot) {
+    @Override public void clearSlot(IsSlot<?> slot) {
         internalClearSlot(slot, null);
         getView().clearSlot(slot);
     }
 
     private void internalClearSlot(IsSlot<?> slot, @Nullable Component dontRemove) {
         for (Component child : new ArrayList<>(children)/*copy to prevent concurrent modification*/) {
-            @Nullable Papers papers = child.papers();
-            if (papers != null && papers.at == slot && !child.equals(dontRemove)) {
-                ((PresenterWidget) child).orphan();
+            if (Optional.ofNullable(child.papers()).map(p -> p.at == slot).orElse(false) && child != dontRemove) {
+                child.orphan();
             }
         }
     }
 
-    @Override public void removeFromParentSlot() {
-        @Nullable Papers papers = papers();
-        if (papers != null) papers.by.rawRemoveFromSlot(papers.at, this);
-    }
-
-    @Override public void removeFromPopupSlot(PresenterWidget<? extends PopupView> child) {
-        removeFromSlot(POPUP_SLOT, child);
-    }
-
     @Override public <T extends Component> void removeFromSlot(MultiSlot<? super T> slot, @Nullable T child) {
-        rawRemoveFromSlot(slot, child);
-    }
-
-    private void rawRemoveFromSlot(IsSlot<?> slot, @Nullable Component child) {
-        if (!slot.isRemovable()) throw new IllegalArgumentException("non removable slot");
         if (child == null || child.opt(ADOPTED).map(o -> o.at != slot).orElse(false)) return;
         if (!child.isPopup()) getView().removeFromSlot(slot, (IsWidget) child);
-        ((PresenterWidget) child).orphan();
+        child.orphan();
     }
 
-    private void orphan() {
+    @Override public void orphan() {
         @Nullable Papers papers = papers();
         if (papers == null) return;
-        if (!papers.at.isRemovable()) {
-            throw new IllegalArgumentException("cannot remove a child from a permanent slot");
-        }
         internalHide();
-        papers.by.children.remove(this);
+        ((PresenterWidget) papers.by).children.remove(this);
         mutate().remove(ADOPTED);
     }
 
+    @SuppressWarnings("unchecked")
     @Override public @Nullable <T extends Component> T getChild(IsSingleSlot<T> slot) {
         for (Component c : children) if (c.req(ADOPTED).at == slot) return (T) c;
         return null;
     }
 
+    @SuppressWarnings("unchecked")
     @Override public <T extends Component> Set<T> getChildren(IsSlot<T> slot) {
+        //noinspection SortedCollectionWithNonComparableKeys
         Set<T> result = slot instanceof OrderedSlot ? new TreeSet<>() : new HashSet<>();
         for (Component c : children) if (requireNonNull(c.papers()).at == slot) result.add((T) c);
         return result;
     }
 
     protected void onReveal() {}
-
-    @VisibleForTesting void internalReveal() {
-        if (isVisible()) return;
-
-        onReveal();
-
-        for (Completable o : revealObservables) subscribe(o, revealSubscriptions);
-
-        visible = true;
-        for (Component c : new ArrayList<>(children)/*prevent concurrent modification*/) {
-            ((PresenterWidget) c).internalReveal();
-        }
-        if (isPopup()) {
-            @SuppressWarnings("unchecked")
-            PresenterWidget<? extends PopupView> asPopupPresenter = (PresenterWidget<? extends PopupView>) this;
-            popup.set(asPopupPresenter.getView().onClose().subscribe(n -> asPopupPresenter.removeFromParentSlot()));
-            asPopupPresenter.getView().showAndReposition();
-        }
-    }
-
     public void onReveal(Flowable<?> o) { onReveal(o.ignoreElements()); }
     public void onReveal(Observable<?> o) { onReveal(o.ignoreElements()); }
     public void onReveal(Single<?> o) { onReveal(o.toCompletable()); }
     public void onReveal(Maybe<?> o) { onReveal(o.ignoreElement()); }
     public void onReveal(Completable o) { revealObservables.add(o); }
+
+    @VisibleForTesting void internalReveal() {
+        if (isVisible()) return;
+        onReveal();
+        for (Completable o : revealObservables) subscribe(o, revealSubscriptions);
+        visible = true;
+        for (Component c : new ArrayList<>(children)/*prevent concurrent modification*/) {
+            ((PresenterWidget) c).internalReveal();
+        }
+        Papers adopted = papers();
+        if (adopted != null && adopted.at.isPopup()) {
+            @SuppressWarnings("unchecked")
+            PresenterWidget<? extends PopupView> asPopupPresenter = (PresenterWidget<? extends PopupView>) this;
+            popup.set(asPopupPresenter.getView().onClose().subscribe(n -> this.orphan()));
+            asPopupPresenter.getView().showAndReposition();
+        }
+    }
 
     protected void onReset() {}
     protected Observable<?> reset() { return reset; }
