@@ -115,7 +115,7 @@ public class GatekeeperTest {
         assertEquals(0, finalPlaceRequest.getParameterNames().size());
 
         verify(defaultPresenter).prepareFromRequest(finalPlaceRequest);
-        verify(defaultPresenter).forceReveal();
+        verify(defaultPresenter).revealInParent();
     }
 
     @Test public void place_manager_reveal_request_place_when_gatekeeper_can_reveal() {
@@ -134,6 +134,6 @@ public class GatekeeperTest {
         assertEquals(0, finalPlaceRequest.getParameterNames().size());
 
         verify(presenterWithGatekeeper).prepareFromRequest(finalPlaceRequest);
-        verify(presenterWithGatekeeper).forceReveal();
+        verify(presenterWithGatekeeper).revealInParent();
     }
 }

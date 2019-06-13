@@ -1,7 +1,5 @@
 package com.intendia.reactivity.client;
 
-import static io.reactivex.Completable.complete;
-
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import io.reactivex.Completable;
 import io.reactivex.CompletableTransformer;
@@ -9,47 +7,45 @@ import io.reactivex.Single;
 
 public interface Slots {
 
-    @SuppressWarnings("unused") interface IsSlot<T extends Component> {
+    @SuppressWarnings("unused") interface IsSlot<Child extends Component> {
         default boolean isPopup() { return this instanceof PopupSlot; }
     }
 
     /** A slot that can only hold one presenter. */
-    interface IsSingleSlot<T extends Component> extends IsSlot<T> {}
+    interface IsSingleSlot<Child extends Component> extends IsSlot<Child> {}
 
     /** A slot that can reveal a child presenter. */
-    interface RevealableSlot<T extends Component> extends IsSingleSlot<T> {
-        @CanIgnoreReturnValue Completable reveal(T presenter);
+    interface RevealableSlot<Child extends Component> extends IsSingleSlot<Child> {
+        @CanIgnoreReturnValue Completable reveal(Child child);
     }
 
-    /** Use NestedSlot in classes extending {@link PresenterChild} to automatically display child presenters. */
-    abstract class NestedSlot<T extends Component> implements RevealableSlot<T> {
-        protected final Single<? extends Component> adopter;
-        protected NestedSlot(Single<? extends Component> adopter) { this.adopter = adopter; }
-        @Override public Completable reveal(T adoptee) {
-            return adopter.flatMapCompletable(p -> {
-                Completable reveal = p instanceof PresenterChild ? ((PresenterChild) p).forceReveal() : complete();
-                return reveal.andThen(Completable.fromAction(() -> p.setInSlot(this, adoptee)));
-            }).compose(AsPromise);
+    /** Use NestedSlot with {@link RevealableComponent}s to automatically display child presenters. */
+    abstract class NestedSlot<Parent extends RevealableComponent> implements RevealableSlot<Component> {
+        protected final Single<Parent> parent;
+        protected NestedSlot(Single<Parent> parent) { this.parent = parent; }
+        @Override public Completable reveal(Component child) {
+            return parent.doOnSuccess(p -> p.setInSlot(this, child))
+                    .flatMapCompletable(RevealableComponent::revealInParent).compose(AsPromise);
         }
     }
 
     /** A slot that can take one or many presenters. */
-    class MultiSlot<T extends Component> implements IsSlot<T> {}
+    class MultiSlot<Child extends Component> implements IsSlot<Child> {}
 
     /**
      * A slot for an ordered presenter. The presenter placed in this slot must implement comparable and will be
      * automatically placed in order in the view.
      */
-    class OrderedSlot<T extends Component & Comparable<T>> extends MultiSlot<T> {}
+    class OrderedSlot<Child extends Component & Comparable<Child>> extends MultiSlot<Child> {}
 
     /**
      * A slot that can take multiple PopupPresenters Acts like {@link MultiSlot} except will hide and show the
      * PopupPresenter when appropriate.
      */
-    class PopupSlot<T extends PresenterWidget<? extends PopupView>> extends MultiSlot<T> {}
+    class PopupSlot<Child extends PresenterWidget<? extends PopupView>> extends MultiSlot<Child> {}
 
     /** A slot that can only take one presenter at a time. */
-    class SingleSlot<T extends Component> implements IsSingleSlot<T> {}
+    class SingleSlot<Child extends Component> implements IsSingleSlot<Child> {}
 
     /** Internal utility to make reveal operations eager, so it works even if no one subscribe. */
     CompletableTransformer AsPromise = o -> o.toObservable().replay().autoConnect(-1).ignoreElements();

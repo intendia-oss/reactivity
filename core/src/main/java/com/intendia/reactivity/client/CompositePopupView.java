@@ -24,27 +24,22 @@ public abstract class CompositePopupView implements PopupView {
 
     private final Map<Slots.IsSlot, View> slots = new IdentityHashMap<>();
     private @Nullable PopupPanel popupPanel;
-    private final EventBus eventBus;
 
     private PopupPositioner positioner;
 
     /**
      * By default the popup will position itself in the center of the window. To use a different positioner use {@link
-     * #CompositePopupView(EventBus, PopupPositioner)} instead.
-     *
-     * @param eventBus The {@link EventBus}.
+     * #CompositePopupView(PopupPositioner)} instead.
      */
-    protected CompositePopupView(EventBus eventBus) { this(eventBus, new CenterPopupPositioner()); }
+    protected CompositePopupView() { this(new CenterPopupPositioner()); }
 
     /**
-     * @param eventBus The {@link EventBus}.
      * @param positioner The {@link PopupPositioner} used to position the popup onReveal();
      * @see CenterPopupPositioner
      * @see PopupPositioner.RelativeToWidgetPopupPositioner
      * @see PopupPositioner.TopLeftPopupPositioner
      */
-    protected CompositePopupView(EventBus eventBus, PopupPositioner positioner) {
-        this.eventBus = eventBus;
+    protected CompositePopupView(PopupPositioner positioner) {
         setPopupPositioner(positioner);
 
         if (repositionOnWindowResize()) {
@@ -64,7 +59,7 @@ public abstract class CompositePopupView implements PopupView {
     }
 
     @Override
-    public void setAutoHideOnNavigationEventEnabled(boolean autoHide) {
+    public void setAutoHideOnNavigationEventEnabled(EventBus eventBus, boolean autoHide) {
         if (autoHide) {
             if (autoHideHandler != null) {
                 return;

@@ -9,11 +9,12 @@ import io.reactivex.Completable;
 import java.util.function.Function;
 
 public interface RevealableComponent extends Component {
-    Extension<RevealableSlot<?>> PARENT_SLOT = Extension.key("component.parentSlot");
+    Extension<RevealableSlot<Component>> PARENT_SLOT = Extension.key("component.parentSlot");
     Extension<Function<PlaceRequest, Completable>> PREPARE_FROM_REQUEST = Extension.key("component.prepareFromRequest");
 
-    default @CanIgnoreReturnValue Completable forceReveal() {
-        if (isVisible()) return complete();
-        return req(PARENT_SLOT.<RevealableSlot<Component>>as()).reveal(this).compose(Slots.AsPromise);
+    default RevealableSlot<Component> parentSlot() { return req(PARENT_SLOT);}
+
+    default @CanIgnoreReturnValue Completable revealInParent() {
+        return isVisible() ? complete() : parentSlot().reveal(this).compose(Slots.AsPromise);
     }
 }

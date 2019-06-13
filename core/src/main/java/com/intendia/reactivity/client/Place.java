@@ -5,14 +5,14 @@ import javax.inject.Provider;
 
 public class Place {
     private final String nameToken;
-    private final Single<? extends PresenterChild<?>> presenter;
+    private final Single<? extends RevealableComponent> presenter;
     private final Gatekeeper gatekeeper;
 
-    public Place(String nameTokens, Single<? extends PresenterChild<?>> presenter) {
+    public Place(String nameTokens, Single<? extends RevealableComponent> presenter) {
         this(nameTokens, presenter, Gatekeeper.PUBLIC);
     }
 
-    public Place(String nameToken, Single<? extends PresenterChild<?>> presenter, Gatekeeper gatekeeper) {
+    public Place(String nameToken, Single<? extends RevealableComponent> presenter, Gatekeeper gatekeeper) {
         this.nameToken = nameToken;
         this.presenter = presenter;
         this.gatekeeper = gatekeeper;

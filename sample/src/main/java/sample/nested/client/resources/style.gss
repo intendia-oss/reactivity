@@ -104,18 +104,6 @@ p {
     margin-bottom: .8rem;
 }
 
-button {
-    background: #333;
-    color: #fff;
-
-    border: 0;
-    padding: 7px 6px 6px;
-}
-
-button:hover {
-    background: #000;
-}
-
 input {
     padding: 5px;
 }

@@ -8,7 +8,7 @@ import javax.inject.Singleton;
 @Singleton
 public class PopupPresenterTestUtilGwt extends PresenterWidget<PopupPresenterTestUtilGwt.MyView> {
     public static class MyView extends CompositePopupView {
-        @Inject MyView(EventBus eventBus) { super(eventBus); initWidget(new DialogBox()); }
+        @Inject MyView(EventBus eventBus) { super(); initWidget(new DialogBox()); }
     }
 
     @Inject PopupPresenterTestUtilGwt(MyView view) {

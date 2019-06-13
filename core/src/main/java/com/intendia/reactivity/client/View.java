@@ -16,7 +16,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-/** The interface for view classes that handles all the UI-related code for a {@link PresenterChild}. */
+/** The interface for view classes that handles all the UI-related code for a {@link PresenterWidget}. */
 public interface View {
 
     default Widget asWidget() { throw new UnsupportedOperationException(); }

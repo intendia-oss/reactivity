@@ -109,7 +109,7 @@ public class PlaceManager {
                     // Reveal only if there are no pending navigation requests
                     if (hasPendingNavigation()) return Completable.complete();
 
-                    if (!p.isVisible()) return p.forceReveal(); // This will trigger a reset in due time
+                    if (!p.isVisible()) return p.revealInParent(); // This will trigger a reset in due time
                     else p.performReset(); // Otherwise, we have to do the reset ourselves
                     return Completable.complete();
                 }));

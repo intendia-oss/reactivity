@@ -12,14 +12,14 @@ import org.junit.Test;
 
 public class PresenterTest {
 
-    interface TestSlot extends RevealableSlot<RevealableComponent> {}
+    interface TestSlot extends RevealableSlot<Component> {}
 
     static class TestPresenter extends PresenterChild<View> {
         public int revealInParentCalled;
         TestPresenter() { super(mock(View.class), mock(TestSlot.class)); }
-        @Override public Completable forceReveal() {
-            if (isVisible()) return complete();
-            return Completable.fromAction(() -> revealInParentCalled++);
+        @Override public Completable revealInParent() {
+            if (!isVisible()) revealInParentCalled++;
+            return complete();
         }
     }
 
@@ -30,7 +30,7 @@ public class PresenterTest {
         TestPresenter presenter = new TestPresenter();
         assertFalse(presenter.isVisible());
         // When
-        presenter.forceReveal().blockingAwait();
+        presenter.revealInParent().blockingAwait();
         // Then
         assertEquals(1, presenter.revealInParentCalled);
     }
@@ -41,7 +41,7 @@ public class PresenterTest {
         presenter.internalReveal();
         assertTrue(presenter.isVisible());
         // When
-        presenter.forceReveal().blockingAwait();
+        presenter.revealInParent().blockingAwait();
         // Then
         assertEquals(0, presenter.revealInParentCalled);
     }

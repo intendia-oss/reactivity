@@ -81,8 +81,6 @@ public class PlaceManagerImplTest {
             placeManager.revealPlace(PlaceRequest.of("basic").build());
             return Completable.never();
         }
-
-        protected Completable revealInParent() { return Completable.fromAction(() -> ++revealInParentCalls); }
     }
 
     static class RedirectPlace extends Place {
@@ -149,7 +147,7 @@ public class PlaceManagerImplTest {
         assertEquals("dummyValue", placeRequest.getParameter("dummyParam", null));
 
         verify(presenterBasic).prepareFromRequest(placeRequest);
-        verify(presenterBasic).forceReveal();
+        verify(presenterBasic).revealInParent();
 
         verify(gwtWindowMethods).setBrowserHistoryToken(any(String.class), eq(false));
 
@@ -197,7 +195,7 @@ public class PlaceManagerImplTest {
         assertEquals(0, presenterRedirect.revealInParentCalls);
 
         verify(presenterBasic).prepareFromRequest(finalPlaceRequest);
-        verify(presenterBasic).forceReveal();
+        verify(presenterBasic).revealInParent();
     }
 
     @Test public void placeManagerUserCallUpdateHistoryWhenRevealingPlace() {

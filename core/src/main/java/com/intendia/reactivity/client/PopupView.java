@@ -5,6 +5,7 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.Widget;
+import com.google.web.bindery.event.shared.EventBus;
 import io.reactivex.Observable;
 
 /**
@@ -37,7 +38,7 @@ public interface PopupView extends View {
      * automatically hide the dialog even if navigation is refused through
      * {@link PlaceManager#setOnLeaveConfirmation(String) PlaceManager#setOnLeaveConfirmation} .
      */
-    void setAutoHideOnNavigationEventEnabled(boolean autoHide);
+    void setAutoHideOnNavigationEventEnabled(EventBus eventBus, boolean autoHide);
 
     void setPopupPositioner(PopupPositioner positioner);
 
