@@ -2,7 +2,6 @@ package com.intendia.reactivity.client;
 
 import static com.intendia.reactivity.client.RevealableComponent.PREPARE_FROM_REQUEST;
 import static io.reactivex.Completable.defer;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static java.util.Objects.requireNonNull;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -14,30 +13,23 @@ import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Window;
 import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.HandlerRegistration;
+import com.intendia.reactivity.client.PlaceException.BadPlaceTokenException;
+import com.intendia.reactivity.client.PlaceException.PlaceNotFoundException;
+import com.intendia.reactivity.client.PlaceNavigator.PlaceNavigation;
 import com.intendia.reactivity.client.TokenFormatter.TokenFormatException;
 import io.reactivex.Completable;
-import java.lang.annotation.Retention;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import javax.inject.Inject;
-import javax.inject.Qualifier;
 
 public class PlaceManager {
-
-    @Qualifier @Retention(RUNTIME) public @interface DefaultPlace {}
-
-    @Qualifier @Retention(RUNTIME) public @interface ErrorPlace {}
-
-    @Qualifier @Retention(RUNTIME) public @interface UnauthorizedPlace {}
 
     private final EventBus eventBus;
     private final TokenFormatter tokenFormatter;
     private final Historian historian;
     private final Set<Place> places;
-    private final PlaceRequest defaultPlaceRequest;
-    private final PlaceRequest errorPlaceRequest;
-    private final PlaceRequest unauthorizedPlaceRequest;
+    private final PlaceNavigator placeNavigator;
 
     private String currentHistoryToken = "";
     private boolean internalError;
@@ -54,18 +46,13 @@ public class PlaceManager {
             TokenFormatter tokenFormatter,
             Historian historian,
             Set<Place> places,
-            @DefaultPlace Place pDefault,
-            @ErrorPlace Place pError,
-            @UnauthorizedPlace Place pUnauthorized
-    ) {
+            PlaceNavigator placeNavigator) {
         this.eventBus = bus;
         this.tokenFormatter = tokenFormatter;
         this.historian = historian;
         this.places = places;
         this.historian.addValueChangeHandler(event -> handleTokenChange(event.getValue()));
-        this.defaultPlaceRequest = PlaceRequest.of(pDefault.getNameToken()).build();
-        this.errorPlaceRequest = PlaceRequest.of(pError.getNameToken()).build();
-        this.unauthorizedPlaceRequest = PlaceRequest.of(pUnauthorized.getNameToken()).build();
+        this.placeNavigator = placeNavigator;
     }
 
     /**
@@ -94,26 +81,24 @@ public class PlaceManager {
         Optional<Place> matches = places.stream()
                 .filter(place -> place.matchesRequest(request))
                 .findFirst();
-        if (!matches.isPresent()) {
-            unlock();
-            error(tokenFormatter.toPlaceToken(request));
-        } else if (!requireNonNull(matches.get()).canReveal(request)) {
-            unlock();
-            illegalAccess(tokenFormatter.toPlaceToken(request));
-        } else {
-            matches.get().getPresenter().flatMapCompletable(p -> {
-                return p.req(PREPARE_FROM_REQUEST).apply(request).andThen(defer(() -> {
-                    // User might manually update place request in prepareFrom request, so always read it again
-                    fireEvent(new NavigationEvent(getCurrentPlaceRequest()));
+        try {
+            Place place = matches.orElseThrow(() -> new PlaceNotFoundException(request));
+            place.checkReveal(request);
+            place.getPresenter()
+                    .flatMapCompletable(p -> p.req(PREPARE_FROM_REQUEST).apply(request).andThen(defer(() -> {
+                        // User might manually update place request in prepareFrom request, so always read it again
+                        fireEvent(new NavigationEvent(getCurrentPlaceRequest()));
 
-                    // Reveal only if there are no pending navigation requests
-                    if (hasPendingNavigation()) return Completable.complete();
+                        // Reveal only if there are no pending navigation requests
+                        if (hasPendingNavigation()) return Completable.complete();
 
-                    if (!p.isVisible()) return p.revealInParent(); // This will trigger a reset in due time
-                    else p.performReset(); // Otherwise, we have to do the reset ourselves
-                    return Completable.complete();
-                }));
-            }).doOnTerminate(this::unlock).subscribe(); //XXX eliminate all subscribe calls!
+                        if (!p.isVisible()) return p.revealInParent(); // This will trigger a reset in due time
+                        else p.performReset(); // Otherwise, we have to do the reset ourselves
+                        return Completable.complete();
+                    }))).doOnTerminate(this::unlock).subscribe(); //XXX eliminate all subscribe calls!
+        } catch (Exception e) {
+            unlock();
+            error(e);
         }
     }
 
@@ -121,10 +106,12 @@ public class PlaceManager {
      * Called whenever an error occurred that requires the error page to be shown to the user. This method will detect
      * infinite reveal loops and throw an {@link RuntimeException} in that case.
      */
-    private void error(String invalidHistoryToken) {
-        startError();
-        revealErrorPlace(invalidHistoryToken);
-        stopError();
+    private void error(Throwable throwable) {
+        if (internalError) throw new RuntimeException("Encountered repeated errors resulting in an infinite loop. "
+                + "Make sure all users have access to the pages revealed in case of error by the place navigator.");
+        internalError = true;
+        revealErrorPlace(throwable);
+        internalError = false;
     }
 
     private void fireEvent(GwtEvent<?> event) { getEventBus().fireEventFromSource(event, this); }
@@ -147,19 +134,6 @@ public class PlaceManager {
     }
 
     public boolean hasPendingNavigation() { return deferredNavigation != null; }
-
-    /**
-     * Called whenever the user tries to access an page to which he doesn't have access, and we need to reveal the
-     * user-defined unauthorized place. This method will detect infinite reveal loops and throw an {@link
-     * RuntimeException} in that case.
-     *
-     * @param historyToken The history token that was not recognised.
-     */
-    private void illegalAccess(String historyToken) {
-        startError();
-        revealUnauthorizedPlace(historyToken);
-        stopError();
-    }
 
     private void lock() {
         if (!locked) {
@@ -190,35 +164,22 @@ public class PlaceManager {
             }
         } catch (TokenFormatException e) {
             unlock();
-            error(historyToken);
+            error(new BadPlaceTokenException(historyToken, e));
             fireEvent(new NavigationEvent(null));
         }
     }
 
     public void revealCurrentPlace() { handleTokenChange(historian.getToken()); }
 
-    /**
-     * Reveals the default place. This is invoked when the history token is empty and no places
-     * handled it. Application-specific place managers should build a {@link PlaceRequest}
-     * corresponding to their default presenter and call {@link #revealPlace(PlaceRequest, UpdateBrowserUrl)}
-     * with it. Consider passing {@code false} as the second parameter of {@code revealPlace},
-     * otherwise a new token will be inserted in the browser's history and hitting the browser's
-     * <em>back</em> button will not take the user out of the application.
-     * <p/>
-     * <b>Important!</b> Make sure you build a valid {@link PlaceRequest} and that the user has access
-     * to it, otherwise you might create an infinite loop.
-     */
-    public void revealDefaultPlace() { revealPlace(defaultPlaceRequest, UpdateBrowserUrl.NOOP); }
+    public final void revealDefaultPlace() { revealPlaceFrom(placeNavigator.defaultNavigation()); }
 
-    public void revealErrorPlace(String invalidHistoryToken) { revealPlace(errorPlaceRequest, UpdateBrowserUrl.NOOP); }
-
-    public void revealUnauthorizedPlace(String unauthorizedHistoryToken) {
-        revealPlace(unauthorizedPlaceRequest, UpdateBrowserUrl.NOOP);
+    public final void revealErrorPlace(Throwable throwable) {
+        revealPlaceFrom(placeNavigator.errorNavigation(throwable));
     }
 
-    public void revealPlace(PlaceRequest request) { revealPlace(request, UpdateBrowserUrl.NEW); }
+    public void revealPlace(PlaceRequest request) { revealPlace(request, HistoryUpdate.ADD); }
 
-    public void revealPlace(PlaceRequest request, UpdateBrowserUrl mode) {
+    public void revealPlace(PlaceRequest request, HistoryUpdate mode) {
         requireNonNull(request, "request required");
         if (locked) {
             deferredNavigation = () -> revealPlace(request, mode);
@@ -230,6 +191,10 @@ public class PlaceManager {
         place = request;
         updateHistory(request, mode);
         doRevealPlace(request);
+    }
+
+    private void revealPlaceFrom(PlaceNavigation placeNavigation) {
+        revealPlace(placeNavigation.placeRequest, placeNavigation.update);
     }
 
     /**
@@ -282,19 +247,6 @@ public class PlaceManager {
         onLeaveQuestion = question;
     }
 
-    /** Start revealing an error or unauthorized page and will throw an exception if an infinite loop is detected. */
-    private void startError() {
-        if (internalError) throw new RuntimeException("Encountered repeated errors resulting in an infinite loop. "
-                + "Make sure all users have access to the pages revealed by revealErrorPlace and "
-                + "revealUnauthorizedPlace. (Note that the default implementations call revealDefaultPlace)");
-        internalError = true;
-    }
-
-    /** Indicates that an error page has successfully been revealed. Makes it possible to detect infinite loops. */
-    private void stopError() {
-        internalError = false;
-    }
-
     public void unlock() {
         if (locked) {
             locked = false;
@@ -307,15 +259,15 @@ public class PlaceManager {
         }
     }
 
-    public enum UpdateBrowserUrl {
+    public enum HistoryUpdate {
         /** Does not update the browser URL. */ NOOP(false),
-        /** Updates the browser URL adding a new history item. */ NEW(true),
+        /** Updates the browser URL adding a new history item. */ ADD(true),
         /** Updates the browser URL replacing the last history item. */ REPLACE(true);
         private final boolean change;
-        UpdateBrowserUrl(boolean change) { this.change = change;}
+        HistoryUpdate(boolean change) { this.change = change;}
     }
 
-    public void updateHistory(PlaceRequest request, UpdateBrowserUrl mode) {
+    public void updateHistory(PlaceRequest request, HistoryUpdate mode) {
         try {
             // Make sure the request match, externally can only be used to change parameters
             assert request.matchesNameToken(place) : "name token mismatch";
@@ -323,7 +275,7 @@ public class PlaceManager {
             if (mode.change) {
                 String historyToken = tokenFormatter.toPlaceToken(place);
                 if (!Objects.equals(historyToken, historian.getToken())) switch (mode) {
-                    case NEW: historian.newItem(historyToken, false); break;
+                    case ADD: historian.newItem(historyToken, false); break;
                     case REPLACE: historian.replaceItem(historyToken, false); break;
                 }
                 saveHistoryToken(historyToken);

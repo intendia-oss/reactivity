@@ -6,7 +6,6 @@ import com.google.gwt.uibinder.client.UiTemplate;
 import com.google.gwt.user.client.ui.Widget;
 import com.intendia.reactivity.client.CompositeView;
 import com.intendia.reactivity.client.Place;
-import com.intendia.reactivity.client.PlaceRequest;
 import com.intendia.reactivity.client.PresenterChild;
 import com.intendia.reactivity.client.View;
 import io.reactivex.Single;
@@ -20,7 +19,7 @@ public class AboutUsPresenter extends PresenterChild<AboutUsPresenter.MyView> {
 
     public static @Singleton class MyPlace extends Place {
         @Inject MyPlace(Single<Presenters> p) {
-            super(NameTokens.aboutUsPage, p.map(Presenters::aboutUs), (PlaceRequest request) -> true);
+            super(NameTokens.aboutUsPage, p.map(Presenters::aboutUs));
         }
     }
 

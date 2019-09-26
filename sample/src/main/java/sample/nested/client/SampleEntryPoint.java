@@ -1,5 +1,10 @@
 package sample.nested.client;
 
+import static com.intendia.reactivity.client.PlaceNavigator.PlaceNavigation.noop;
+import static com.intendia.reactivity.client.PlaceRequest.of;
+import static sample.nested.client.NameTokens.emptyPage;
+import static sample.nested.client.NameTokens.homePage;
+
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.RunAsyncCallback;
@@ -9,10 +14,8 @@ import com.intendia.reactivity.client.ParameterTokenFormatter;
 import com.intendia.reactivity.client.Place;
 import com.intendia.reactivity.client.PlaceManager;
 import com.intendia.reactivity.client.PlaceManager.DefaultHistorian;
-import com.intendia.reactivity.client.PlaceManager.DefaultPlace;
-import com.intendia.reactivity.client.PlaceManager.ErrorPlace;
 import com.intendia.reactivity.client.PlaceManager.Historian;
-import com.intendia.reactivity.client.PlaceManager.UnauthorizedPlace;
+import com.intendia.reactivity.client.PlaceNavigator;
 import com.intendia.reactivity.client.TokenFormatter;
 import dagger.Binds;
 import dagger.Component;
@@ -41,10 +44,15 @@ public class SampleEntryPoint implements EntryPoint {
 
     @Module(includes = DefaultModule.class, subcomponents = ClientModule.Presenters.class)
     public interface ClientModule {
-        // fallback places; required by PlaceManager to handle default, error and unauthorized cases
-        @Binds @DefaultPlace Place provideDefaultPlace(HomePresenter.MyPlace o);
-        @Binds @ErrorPlace Place provideErrorPlace(EmptyPresenter.MyPlace o);
-        @Binds @UnauthorizedPlace Place provideUnauthorizedPlace(EmptyPresenter.MyPlace o);
+        // place navigator; required by to handle default and error
+        static @Provides PlaceNavigator providePlaceNavigator() {
+            return new PlaceNavigator() {
+                @Override public PlaceNavigation defaultNavigation() { return noop(of(homePage).build()); }
+                @Override public PlaceNavigation errorNavigation(Throwable throwable) {
+                    return noop(of(emptyPage).build());
+                }
+            };
+        }
 
         // included in initial bundle
         @Binds @IntoSet Place bindEmptyPlace(EmptyPresenter.MyPlace o);

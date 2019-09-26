@@ -14,8 +14,8 @@ public class TestPlaceManager extends PlaceManager {
     private final MyMock mock;
 
     @Inject TestPlaceManager(EventBus eventBus, TokenFormatter tokenFormatter,
-            MyMock mock, Set<Place> places, GatekeeperTest.DefaultPlace dp) {
-        super(eventBus, tokenFormatter, mock(Historian.class), places, dp, dp, dp);
+            MyMock mock, Set<Place> places, PlaceNavigator placeNavigator) {
+        super(eventBus, tokenFormatter, mock(Historian.class), places, placeNavigator);
         this.mock = mock;
     }
 
