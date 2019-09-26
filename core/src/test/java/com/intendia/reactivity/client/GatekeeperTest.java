@@ -1,5 +1,6 @@
 package com.intendia.reactivity.client;
 
+import static com.intendia.reactivity.client.PlaceNavigator.PlaceNavigation.noop;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
@@ -31,6 +32,13 @@ public class GatekeeperTest {
         @Provides @Singleton static EventBus provideEventBus() { return new SimpleEventBus(); }
         @Binds @Singleton TokenFormatter bindTokenFormatter(ParameterTokenFormatter o);
         @Binds @Singleton PlaceManager bindPlaceManager(TestPlaceManager o);
+        @Provides static @Singleton PlaceNavigator providePlaceNavigator(GatekeeperTest.DefaultPlace dp) {
+            PlaceRequest request = PlaceRequest.of(dp.getNameToken()).build();
+            return new PlaceNavigator() {
+                @Override public PlaceNavigation defaultNavigation() { return noop(request); }
+                @Override public PlaceNavigation errorNavigation(Throwable throwable) { return noop(request); }
+            };
+        }
         @Provides @Singleton static TestPlaceManager.MyMock providePMM() { return mock(TestPlaceManager.MyMock.class);}
         @Provides static View provideView() { return mock(View.class); }
         @Provides @Singleton static TestScheduler provideTestScheduler() { return new TestScheduler(); }
@@ -81,12 +89,19 @@ public class GatekeeperTest {
 
     static class DenyGatekeeper implements GatekeeperFactory {
         @Inject public DenyGatekeeper() {}
-        @Override public Gatekeeper create(String... params) { return request -> false; }
+        @Override public Gatekeeper create(String... params) {
+            return request -> {
+                throw new PlaceException("No permission");
+            };
+        }
     }
 
     static class GrantGatekeeper implements GatekeeperFactory {
         @Inject public GrantGatekeeper() {}
-        @Override public Gatekeeper create(String... params) { return request -> true; }
+        @Override public Gatekeeper create(String... params) {
+            return request -> {
+            };
+        }
     }
 
     @Before public void prepare() {

@@ -3,7 +3,6 @@ package sample.nested.client.application;
 import com.google.gwt.user.client.ui.HTML;
 import com.intendia.reactivity.client.CompositeView;
 import com.intendia.reactivity.client.Place;
-import com.intendia.reactivity.client.PlaceRequest;
 import com.intendia.reactivity.client.PresenterChild;
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -14,7 +13,7 @@ public class EmptyPresenter extends PresenterChild<EmptyPresenter.MyView> {
 
     public static @Singleton class MyPlace extends Place {
         @Inject MyPlace(Provider<EmptyPresenter> p) {
-            super(NameTokens.emptyPage, asSingle(p), (PlaceRequest request) -> true);
+            super(NameTokens.emptyPage, asSingle(p));
         }
     }
 

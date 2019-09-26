@@ -1,5 +1,6 @@
 package com.intendia.reactivity.client;
 
+import static com.intendia.reactivity.client.PlaceNavigator.PlaceNavigation.noop;
 import static org.mockito.Mockito.mock;
 
 import com.google.web.bindery.event.shared.EventBus;
@@ -22,8 +23,16 @@ public abstract class ClientModuleTestUtilGwt {
 
     // default module
     @Provides @Singleton static EventBus provideEventBus() { return new SimpleEventBus(); }
+    @Provides @Singleton static PlaceNavigator providePlaceNavigator(MainPresenterTestUtilGwt.MyPlace p) {
+        PlaceRequest request = PlaceRequest.of(p.getNameToken()).build();
+        return new PlaceNavigator() {
+            @Override public PlaceNavigation defaultNavigation() { return noop(request); }
+            @Override public PlaceNavigation errorNavigation(Throwable throwable) { return noop(request); }
+        };
+    }
     @Provides @Singleton static PlaceManager providePlaceManager(EventBus bus, Set<Place> places,
-            MainPresenterTestUtilGwt.MyPlace p) {
-        return new PlaceManager(bus, mock(ParameterTokenFormatter.class), mock(Historian.class), places, p, p, p) {};
+            PlaceNavigator placeNavigator) {
+        return new PlaceManager(bus, mock(ParameterTokenFormatter.class), mock(Historian.class), places,
+                placeNavigator) {};
     }
 }

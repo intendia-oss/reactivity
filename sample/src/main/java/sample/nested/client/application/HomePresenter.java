@@ -17,7 +17,6 @@ import com.google.gwt.user.client.ui.Widget;
 import com.intendia.reactivity.client.CompositePopupView;
 import com.intendia.reactivity.client.CompositeView;
 import com.intendia.reactivity.client.Place;
-import com.intendia.reactivity.client.PlaceRequest;
 import com.intendia.reactivity.client.PresenterChild;
 import com.intendia.reactivity.client.PresenterWidget;
 import com.intendia.rxgwt2.user.RxHandlers;
@@ -34,7 +33,7 @@ public class HomePresenter extends PresenterChild<HomePresenter.MyView> {
 
     public static @Singleton class MyPlace extends Place {
         @Inject MyPlace(Single<Presenters> p) {
-            super(NameTokens.homePage, p.map(Presenters::home), (PlaceRequest request) -> true);
+            super(NameTokens.homePage, p.map(Presenters::home));
         }
     }
 
