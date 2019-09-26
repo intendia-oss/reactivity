@@ -31,6 +31,10 @@ public class GatekeeperTest {
         @Provides @Singleton static EventBus provideEventBus() { return new SimpleEventBus(); }
         @Binds @Singleton TokenFormatter bindTokenFormatter(ParameterTokenFormatter o);
         @Binds @Singleton PlaceManager bindPlaceManager(TestPlaceManager o);
+        @Provides static @Singleton PlaceNavigator providePlaceNavigator(GatekeeperTest.DefaultPlace dp) {
+            PlaceRequest request = PlaceRequest.of(dp.getNameToken()).build();
+            return new PlaceNavigator.DefaultPlaceNavigator(request, request, request);
+        }
         @Provides @Singleton static TestPlaceManager.MyMock providePMM() { return mock(TestPlaceManager.MyMock.class);}
         @Provides static View provideView() { return mock(View.class); }
         @Provides @Singleton static TestScheduler provideTestScheduler() { return new TestScheduler(); }

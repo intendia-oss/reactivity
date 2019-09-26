@@ -1,5 +1,7 @@
 package sample.nested.client;
 
+import static com.intendia.reactivity.client.PlaceRequest.of;
+
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.RunAsyncCallback;
@@ -9,10 +11,13 @@ import com.intendia.reactivity.client.ParameterTokenFormatter;
 import com.intendia.reactivity.client.Place;
 import com.intendia.reactivity.client.PlaceManager;
 import com.intendia.reactivity.client.PlaceManager.DefaultHistorian;
-import com.intendia.reactivity.client.PlaceManager.DefaultPlace;
-import com.intendia.reactivity.client.PlaceManager.ErrorPlace;
 import com.intendia.reactivity.client.PlaceManager.Historian;
-import com.intendia.reactivity.client.PlaceManager.UnauthorizedPlace;
+import com.intendia.reactivity.client.PlaceNavigator;
+import com.intendia.reactivity.client.PlaceNavigator.DefaultPlaceNavigator;
+import com.intendia.reactivity.client.PlaceNavigator.DefaultPlaceNavigator.DefaultPlace;
+import com.intendia.reactivity.client.PlaceNavigator.DefaultPlaceNavigator.ErrorPlace;
+import com.intendia.reactivity.client.PlaceNavigator.DefaultPlaceNavigator.UnauthorizedPlace;
+import com.intendia.reactivity.client.PlaceRequest;
 import com.intendia.reactivity.client.TokenFormatter;
 import dagger.Binds;
 import dagger.Component;
@@ -41,10 +46,13 @@ public class SampleEntryPoint implements EntryPoint {
 
     @Module(includes = DefaultModule.class, subcomponents = ClientModule.Presenters.class)
     public interface ClientModule {
-        // fallback places; required by PlaceManager to handle default, error and unauthorized cases
-        @Binds @DefaultPlace Place provideDefaultPlace(HomePresenter.MyPlace o);
-        @Binds @ErrorPlace Place provideErrorPlace(EmptyPresenter.MyPlace o);
-        @Binds @UnauthorizedPlace Place provideUnauthorizedPlace(EmptyPresenter.MyPlace o);
+        // fallback places; required by DefaultPlaceNavigator to handle default, error and unauthorized cases
+        static @Provides @DefaultPlace PlaceRequest provideDefaultPlace() { return of(NameTokens.homePage).build(); }
+        static @Provides @ErrorPlace PlaceRequest provideErrorPlace() { return of(NameTokens.emptyPage).build(); }
+        ;
+        static @Provides @UnauthorizedPlace PlaceRequest provideUnauthorizedPlace() {
+            return of(NameTokens.emptyPage).build();
+        }
 
         // included in initial bundle
         @Binds @IntoSet Place bindEmptyPlace(EmptyPresenter.MyPlace o);
@@ -75,6 +83,7 @@ public class SampleEntryPoint implements EntryPoint {
     public interface DefaultModule {
         @Provides @Singleton static EventBus provideEventBus() { return new SimpleEventBus(); }
         @Provides @Singleton static Historian provideHistorian() { return new DefaultHistorian(); }
+        @Binds @Singleton PlaceNavigator providePlaceNavigator(DefaultPlaceNavigator p);
         @Binds @Singleton TokenFormatter provideTokenFormatter(ParameterTokenFormatter o);
     }
 }

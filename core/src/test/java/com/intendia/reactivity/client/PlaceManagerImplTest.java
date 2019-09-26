@@ -11,9 +11,9 @@ import static org.mockito.Mockito.verify;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.SimpleEventBus;
+import com.intendia.reactivity.client.PlaceManager.HistoryUpdate;
 import com.intendia.reactivity.client.PlaceManager.NavigationEvent;
 import com.intendia.reactivity.client.PlaceManager.NavigationEvent.NavigationHandler;
-import com.intendia.reactivity.client.PlaceManager.UpdateBrowserUrl;
 import com.intendia.reactivity.client.RootPresenter.RootContentSlot;
 import com.intendia.reactivity.client.TestPlaceManager.MyMock;
 import dagger.Binds;
@@ -98,7 +98,7 @@ public class PlaceManagerImplTest {
 
         @Override public Completable prepareFromRequest(PlaceRequest request) {
             super.prepareFromRequest(request);
-            placeManager.revealPlace(PlaceRequest.of("basic").build(), UpdateBrowserUrl.NOOP);
+            placeManager.revealPlace(PlaceRequest.of("basic").build(), HistoryUpdate.NOOP);
             return Completable.never();
         }
     }

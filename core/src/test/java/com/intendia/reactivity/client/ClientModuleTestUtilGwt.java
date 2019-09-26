@@ -22,8 +22,13 @@ public abstract class ClientModuleTestUtilGwt {
 
     // default module
     @Provides @Singleton static EventBus provideEventBus() { return new SimpleEventBus(); }
+    @Provides @Singleton static PlaceNavigator providePlaceNavigator(MainPresenterTestUtilGwt.MyPlace p) {
+        PlaceRequest request = PlaceRequest.of(p.getNameToken()).build();
+        return new PlaceNavigator.DefaultPlaceNavigator(request, request, request);
+    }
     @Provides @Singleton static PlaceManager providePlaceManager(EventBus bus, Set<Place> places,
-            MainPresenterTestUtilGwt.MyPlace p) {
-        return new PlaceManager(bus, mock(ParameterTokenFormatter.class), mock(Historian.class), places, p, p, p) {};
+            PlaceNavigator placeNavigator) {
+        return new PlaceManager(bus, mock(ParameterTokenFormatter.class), mock(Historian.class), places,
+                placeNavigator) {};
     }
 }

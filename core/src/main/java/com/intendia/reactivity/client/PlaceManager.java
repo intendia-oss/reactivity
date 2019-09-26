@@ -2,7 +2,6 @@ package com.intendia.reactivity.client;
 
 import static com.intendia.reactivity.client.RevealableComponent.PREPARE_FROM_REQUEST;
 import static io.reactivex.Completable.defer;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static java.util.Objects.requireNonNull;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -14,30 +13,21 @@ import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Window;
 import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.HandlerRegistration;
+import com.intendia.reactivity.client.PlaceNavigator.PlaceNavigation;
 import com.intendia.reactivity.client.TokenFormatter.TokenFormatException;
 import io.reactivex.Completable;
-import java.lang.annotation.Retention;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import javax.inject.Inject;
-import javax.inject.Qualifier;
 
 public class PlaceManager {
-
-    @Qualifier @Retention(RUNTIME) public @interface DefaultPlace {}
-
-    @Qualifier @Retention(RUNTIME) public @interface ErrorPlace {}
-
-    @Qualifier @Retention(RUNTIME) public @interface UnauthorizedPlace {}
 
     private final EventBus eventBus;
     private final TokenFormatter tokenFormatter;
     private final Historian historian;
     private final Set<Place> places;
-    private final PlaceRequest defaultPlaceRequest;
-    private final PlaceRequest errorPlaceRequest;
-    private final PlaceRequest unauthorizedPlaceRequest;
+    private final PlaceNavigator placeNavigator;
 
     private String currentHistoryToken = "";
     private boolean internalError;
@@ -54,18 +44,13 @@ public class PlaceManager {
             TokenFormatter tokenFormatter,
             Historian historian,
             Set<Place> places,
-            @DefaultPlace Place pDefault,
-            @ErrorPlace Place pError,
-            @UnauthorizedPlace Place pUnauthorized
-    ) {
+            PlaceNavigator placeNavigator) {
         this.eventBus = bus;
         this.tokenFormatter = tokenFormatter;
         this.historian = historian;
         this.places = places;
         this.historian.addValueChangeHandler(event -> handleTokenChange(event.getValue()));
-        this.defaultPlaceRequest = PlaceRequest.of(pDefault.getNameToken()).build();
-        this.errorPlaceRequest = PlaceRequest.of(pError.getNameToken()).build();
-        this.unauthorizedPlaceRequest = PlaceRequest.of(pUnauthorized.getNameToken()).build();
+        this.placeNavigator = placeNavigator;
     }
 
     /**
@@ -197,28 +182,19 @@ public class PlaceManager {
 
     public void revealCurrentPlace() { handleTokenChange(historian.getToken()); }
 
-    /**
-     * Reveals the default place. This is invoked when the history token is empty and no places
-     * handled it. Application-specific place managers should build a {@link PlaceRequest}
-     * corresponding to their default presenter and call {@link #revealPlace(PlaceRequest, UpdateBrowserUrl)}
-     * with it. Consider passing {@code false} as the second parameter of {@code revealPlace},
-     * otherwise a new token will be inserted in the browser's history and hitting the browser's
-     * <em>back</em> button will not take the user out of the application.
-     * <p/>
-     * <b>Important!</b> Make sure you build a valid {@link PlaceRequest} and that the user has access
-     * to it, otherwise you might create an infinite loop.
-     */
-    public void revealDefaultPlace() { revealPlace(defaultPlaceRequest, UpdateBrowserUrl.NOOP); }
+    public final void revealDefaultPlace() { revealPlaceFrom(placeNavigator.defaultNavigation()); }
 
-    public void revealErrorPlace(String invalidHistoryToken) { revealPlace(errorPlaceRequest, UpdateBrowserUrl.NOOP); }
-
-    public void revealUnauthorizedPlace(String unauthorizedHistoryToken) {
-        revealPlace(unauthorizedPlaceRequest, UpdateBrowserUrl.NOOP);
+    public void revealErrorPlace(String invalidHistoryToken) {
+        revealPlaceFrom(placeNavigator.errorPlaceNavigation(invalidHistoryToken));
     }
 
-    public void revealPlace(PlaceRequest request) { revealPlace(request, UpdateBrowserUrl.NEW); }
+    public void revealUnauthorizedPlace(String unauthorizedHistoryToken) {
+        revealPlaceFrom(placeNavigator.unauthorizedPlaceNavigation(unauthorizedHistoryToken));
+    }
 
-    public void revealPlace(PlaceRequest request, UpdateBrowserUrl mode) {
+    public void revealPlace(PlaceRequest request) { revealPlace(request, HistoryUpdate.ADD); }
+
+    public void revealPlace(PlaceRequest request, HistoryUpdate mode) {
         requireNonNull(request, "request required");
         if (locked) {
             deferredNavigation = () -> revealPlace(request, mode);
@@ -230,6 +206,10 @@ public class PlaceManager {
         place = request;
         updateHistory(request, mode);
         doRevealPlace(request);
+    }
+
+    private void revealPlaceFrom(PlaceNavigation placeNavigation) {
+        revealPlace(placeNavigation.placeRequest, placeNavigation.update);
     }
 
     /**
@@ -307,15 +287,15 @@ public class PlaceManager {
         }
     }
 
-    public enum UpdateBrowserUrl {
+    public enum HistoryUpdate {
         /** Does not update the browser URL. */ NOOP(false),
-        /** Updates the browser URL adding a new history item. */ NEW(true),
+        /** Updates the browser URL adding a new history item. */ ADD(true),
         /** Updates the browser URL replacing the last history item. */ REPLACE(true);
         private final boolean change;
-        UpdateBrowserUrl(boolean change) { this.change = change;}
+        HistoryUpdate(boolean change) { this.change = change;}
     }
 
-    public void updateHistory(PlaceRequest request, UpdateBrowserUrl mode) {
+    public void updateHistory(PlaceRequest request, HistoryUpdate mode) {
         try {
             // Make sure the request match, externally can only be used to change parameters
             assert request.matchesNameToken(place) : "name token mismatch";
@@ -323,7 +303,7 @@ public class PlaceManager {
             if (mode.change) {
                 String historyToken = tokenFormatter.toPlaceToken(place);
                 if (!Objects.equals(historyToken, historian.getToken())) switch (mode) {
-                    case NEW: historian.newItem(historyToken, false); break;
+                    case ADD: historian.newItem(historyToken, false); break;
                     case REPLACE: historian.replaceItem(historyToken, false); break;
                 }
                 saveHistoryToken(historyToken);
