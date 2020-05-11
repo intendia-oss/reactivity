@@ -5,7 +5,8 @@
     <artifactId>reactivity-parent</artifactId>
     <version>HEAD-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <description>A reactive model-view-presenter lib.</description>
+    <name>Reactivity</name>
+    <description>A reactive model-view-presenter lib (aka. Rx-Activities).</description>
     <url>https://github.com/intendia-oss/reactivity</url>
 
     <inceptionYear>2017</inceptionYear>

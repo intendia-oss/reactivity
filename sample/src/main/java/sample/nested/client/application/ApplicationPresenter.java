@@ -27,9 +27,9 @@ import javax.inject.Singleton;
 
 /**
  * This is the top-level presenter of the hierarchy. Other presenters reveal themselves within this presenter.
- * <p/>
- * The goal of this sample is to show how to use nested presenters. These can be useful to decouple multiple presenters
- * that need to be displayed on the screen simultaneously.
+ *
+ * <p>The goal of this sample is to show how to use nested presenters. These can be useful to decouple multiple presenters
+ * that need to be displayed on the screen simultaneously.</p>
  */
 public class ApplicationPresenter extends PresenterChild<ApplicationPresenter.MyView> {
 

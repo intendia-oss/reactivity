@@ -15,9 +15,9 @@ public interface PlaceNavigator {
      * corresponding to their default presenter. Consider returning {@link HistoryUpdate#NOOP} as update value,
      * Otherwise a new token will be inserted in the browser's history and hitting the browser's
      * <em>back</em> button will not take the user out of the application.
-     * <p/>
-     * <b>Important!</b> Make sure you build a valid {@link PlaceRequest} and that the user has access
-     * to it, otherwise you might create an infinite loop.
+     *
+     * <p><b>Important!</b> Make sure you build a valid {@link PlaceRequest} and that the user has access
+     * to it, otherwise you might create an infinite loop.</p>
      */
     PlaceNavigation defaultNavigation();
     PlaceNavigation errorNavigation(Throwable throwable);

@@ -16,8 +16,8 @@ public interface PopupView extends View {
     /**
      * <b>Important!</b> Do not call this directly. Instead use {@link PresenterWidget#addToPopupSlot(PresenterWidget)},
      * passing this view's {@link PresenterWidget}.
-     * <p/>
-     * Make sure the {@link PopupView} is visible. Will not reposition the popup before showing it.
+     *
+     * <p>Make sure the {@link PopupView} is visible. Will not reposition the popup before showing it.</p>
      */
     void show();
 
@@ -33,7 +33,8 @@ public interface PopupView extends View {
     Observable<?> onClose();
 
     /**
-     * Indicates that the view should automatically hide when a {@link PlaceManager.NavigationEvent} is fired. This is better
+     * Indicates that the view should automatically hide when a {@link PlaceManager.NavigationEvent} is fired. This is
+     * better
      * than using GWT's {@link PopupPanel#setAutoHideOnHistoryEventsEnabled(boolean)} since the latter will
      * automatically hide the dialog even if navigation is refused through
      * {@link PlaceManager#setOnLeaveConfirmation(String) PlaceManager#setOnLeaveConfirmation} .
@@ -100,8 +101,8 @@ public interface PopupView extends View {
             /**
              * @param widget - the widget relative to which the popup will be shown.
              *
-             * If there is enough space to the right, the left edge of the popup will be positioned flush with
-             * the left edge of the widget.<p>
+             * <p>If there is enough space to the right, the left edge of the popup will be positioned flush with
+             * the left edge of the widget.</p>
              * <pre>
              *     --------
              *     |widget|
@@ -110,8 +111,8 @@ public interface PopupView extends View {
              *     -------------
              * </pre>
              *
-             * Otherwise if there is enough space on the left the right edge of the popup will be positioned
-             * flush with the right edge of the widget.<p>
+             * <p>Otherwise if there is enough space on the left the right edge of the popup will be positioned
+             * flush with the right edge of the widget.</p>
              * <pre>
              *          --------
              *          |widget|
@@ -120,8 +121,8 @@ public interface PopupView extends View {
              *     -------------
              * </pre>
              *
-             * If there is not enough space to the left or the right and clipToWindow is on. The popup will be
-             * positioned on the left edge of the screen.<p>
+             * <p>If there is not enough space to the left or the right and clipToWindow is on. The popup will be
+             * positioned on the left edge of the screen.</p>
              * <pre>
              *      |   --------
              *      |   |widget|
@@ -142,8 +143,8 @@ public interface PopupView extends View {
              * @param widget - the widget relative to which the popup will be shown.
              * @param clipToWindow - set to false to always position the popup flush to an edge of the widget.
              *
-             * If there is enough space to the right, the left edge of the popup will be positioned flush with
-             * the left edge of the widget.<p>
+             * <p>If there is enough space to the right, the left edge of the popup will be positioned flush with
+             * the left edge of the widget.</p>
              * <pre>
              *     --------
              *     |widget|
@@ -152,8 +153,8 @@ public interface PopupView extends View {
              *     -------------
              * </pre>
              *
-             * Otherwise if there is enough space on the left the right edge of the popup will be positioned
-             * flush with the right edge of the widget.<p>
+             * <p>Otherwise if there is enough space on the left the right edge of the popup will be positioned
+             * flush with the right edge of the widget.</p>
              * <pre>
              *          --------
              *          |widget|
@@ -162,8 +163,8 @@ public interface PopupView extends View {
              *     -------------
              * </pre>
              *
-             * If there is not enough space to the left or the right and clipToWindow is on. The popup will be
-             * positioned on the left edge of the screen.<p>
+             * <p>If there is not enough space to the left or the right and clipToWindow is on. The popup will be
+             * positioned on the left edge of the screen.</p>
              * <pre>
              *      |   --------
              *      |   |widget|
