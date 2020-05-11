@@ -1,21 +1,18 @@
-package com.intendia.reactivity.client;
+package com.intendia.reactivity.gwttest;
 
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.junit.client.GWTTestCase;
+import com.intendia.reactivity.client.PlaceRequest;
 import junit.framework.TestCase;
 
-public class ReactivityGwtTestInSuite extends GWTTestCase {
+public class ReactivityGwtTest extends GWTTestCase {
     GinjectorTestUtilGwt ginjector;
     MainPresenterTestUtilGwt presenter;
 
-    @Override
-    public String getModuleName() {
-        return "com.intendia.reactivity.ReactivityGwtTest";
-    }
+    @Override public String getModuleName() { return "com.intendia.reactivity.gwttest.ReactivityGwtTest"; }
 
-    @Override
-    protected void gwtSetUp() throws Exception {
+    @Override protected void gwtSetUp() throws Exception {
         super.gwtSetUp();
 
         ginjector = DaggerGinjectorTestUtilGwt.create();

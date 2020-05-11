@@ -1,18 +1,22 @@
-package com.intendia.reactivity.client;
+package com.intendia.reactivity.gwttest;
 
 import com.google.gwt.http.client.URL;
 import com.google.gwt.junit.client.GWTTestCase;
+import com.intendia.reactivity.client.ParameterTokenFormatter;
+import com.intendia.reactivity.client.PlaceRequest;
+import com.intendia.reactivity.client.TokenFormatter;
+import com.intendia.reactivity.client.UrlUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
 /** Unit tests for {@link ParameterTokenFormatter}. */
-public class ParameterTokenFormatterGwtTestInSuite extends GWTTestCase {
+public class ParameterTokenFormatterGwtTest extends GWTTestCase {
 
     ParameterTokenFormatter tokenFormatter;
 
-    @Override public String getModuleName() { return "com.intendia.reactivity.ReactivityGwtTest"; }
+    @Override public String getModuleName() { return "com.intendia.reactivity.gwttest.ReactivityGwtTest"; }
 
     @Override protected void gwtSetUp() throws Exception {
         super.gwtSetUp();

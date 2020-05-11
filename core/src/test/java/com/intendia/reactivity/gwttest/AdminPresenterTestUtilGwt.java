@@ -1,8 +1,11 @@
-package com.intendia.reactivity.client;
+package com.intendia.reactivity.gwttest;
 
 import com.google.gwt.user.client.ui.FlowPanel;
-import com.intendia.reactivity.client.AdminPresenterTestUtilGwt.MyView;
+import com.intendia.reactivity.client.CompositeView;
+import com.intendia.reactivity.client.Place;
+import com.intendia.reactivity.client.PresenterChild;
 import com.intendia.reactivity.client.RootPresenter.RootContentSlot;
+import com.intendia.reactivity.gwttest.AdminPresenterTestUtilGwt.MyView;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;

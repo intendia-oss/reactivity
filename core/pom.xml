@@ -18,6 +18,7 @@
                 <configuration>
                     <moduleName>com.intendia.reactivity.Reactivity</moduleName>
                     <skipModule>true</skipModule>
+                    <skipTests>true</skipTests>
                 </configuration>
             </plugin>
             <plugin>

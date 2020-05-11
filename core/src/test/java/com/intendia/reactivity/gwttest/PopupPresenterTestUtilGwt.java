@@ -1,7 +1,9 @@
-package com.intendia.reactivity.client;
+package com.intendia.reactivity.gwttest;
 
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.web.bindery.event.shared.EventBus;
+import com.intendia.reactivity.client.CompositePopupView;
+import com.intendia.reactivity.client.PresenterWidget;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 

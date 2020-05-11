@@ -1,5 +1,6 @@
-package com.intendia.reactivity.client;
+package com.intendia.reactivity.gwttest;
 
+import com.intendia.reactivity.client.PlaceManager;
 import dagger.Component;
 import javax.inject.Provider;
 import javax.inject.Singleton;

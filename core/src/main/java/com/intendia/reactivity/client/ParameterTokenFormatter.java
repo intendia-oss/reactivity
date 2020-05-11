@@ -114,7 +114,7 @@ public class ParameterTokenFormatter implements TokenFormatter {
      * separators. The string will also be passed through {@link UrlUtils#encodeQueryString}.
      * Visible for testing.
      */
-    String customEscape(String string) {
+    public String customEscape(String string) {
         StringBuilder builder = new StringBuilder();
         for (int i = 0, len = string.length(); i < len; i++) {
             char ch = string.charAt(i);

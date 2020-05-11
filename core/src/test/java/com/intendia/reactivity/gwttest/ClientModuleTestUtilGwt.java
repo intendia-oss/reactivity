@@ -1,11 +1,16 @@
-package com.intendia.reactivity.client;
+package com.intendia.reactivity.gwttest;
 
 import static com.intendia.reactivity.client.PlaceNavigator.PlaceNavigation.noop;
 import static org.mockito.Mockito.mock;
 
 import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.SimpleEventBus;
+import com.intendia.reactivity.client.ParameterTokenFormatter;
+import com.intendia.reactivity.client.Place;
+import com.intendia.reactivity.client.PlaceManager;
 import com.intendia.reactivity.client.PlaceManager.Historian;
+import com.intendia.reactivity.client.PlaceNavigator;
+import com.intendia.reactivity.client.PlaceRequest;
 import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
