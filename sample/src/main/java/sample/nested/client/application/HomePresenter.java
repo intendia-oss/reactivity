@@ -26,14 +26,13 @@ import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 import sample.nested.client.NameTokens;
-import sample.nested.client.SampleEntryPoint.ClientModule.Presenters;
+import sample.nested.client.SampleEntryPoint.ClientModule.Bundle;
 
-@Singleton
 public class HomePresenter extends PresenterChild<HomePresenter.MyView> {
 
     public static @Singleton class MyPlace extends Place {
-        @Inject MyPlace(Single<Presenters> p) {
-            super(NameTokens.homePage, p.map(Presenters::home));
+        @Inject MyPlace(Single<Bundle> p) {
+            super(NameTokens.homePage, p.map(Bundle::home));
         }
     }
 

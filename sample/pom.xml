@@ -18,13 +18,11 @@
                 <configuration>
                     <moduleName>sample.nested.Sample</moduleName>
                     <skipModule>true</skipModule>
-                    <compilerArgs>
+                    <compilerArgs><!-- @formatter:off -->
                         <!-- Generate split point and compile metrics reports -->
-                        <arg>-compileReport</arg>
-                        <arg>-XcompilerMetrics</arg>
-                        <arg>-style</arg>
-                        <arg>PRETTY</arg>
-                    </compilerArgs>
+                        <arg>-compileReport</arg><arg>-XcompilerMetrics</arg>
+                        <arg>-style</arg><arg>PRETTY</arg>
+                    </compilerArgs><!-- @formatter:on -->
                 </configuration>
             </plugin>
             <plugin>

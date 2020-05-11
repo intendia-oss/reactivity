@@ -24,7 +24,6 @@ import dagger.Provides;
 import dagger.Subcomponent;
 import dagger.multibindings.IntoSet;
 import io.reactivex.Single;
-import java.util.function.Supplier;
 import javax.inject.Singleton;
 import sample.nested.client.application.AboutUsPresenter;
 import sample.nested.client.application.ContactPresenter;
@@ -42,7 +41,7 @@ public class SampleEntryPoint implements EntryPoint {
         PlaceManager router();
     }
 
-    @Module(includes = DefaultModule.class, subcomponents = ClientModule.Presenters.class)
+    @Module(includes = DefaultModule.class, subcomponents = ClientModule.Bundle.class)
     public interface ClientModule {
         // place navigator; required by to handle default and error
         static @Provides PlaceNavigator providePlaceNavigator() {
@@ -63,18 +62,18 @@ public class SampleEntryPoint implements EntryPoint {
         @Binds @IntoSet Place bindContactPlace(ContactPresenter.MyPlace o);
 
         // we group and hide presenters to encourage code-splitting
-        @Subcomponent interface Presenters {
+        @Subcomponent interface Bundle {
             HomePresenter home();
             AboutUsPresenter aboutUs();
             ContactPresenter contact();
-            @Subcomponent.Builder interface Builder extends Supplier<Presenters> {}
+            @Subcomponent.Factory interface Factory { Bundle create();}
         }
 
         // and we use a async lazy Presenters component to access to all the presenter in the split
-        @Provides @Singleton static Single<Presenters> presenters(Presenters.Builder builder) {
+        @Provides @Singleton static Single<Bundle> presenters(Bundle.Factory b) {
             return Single.create(s -> GWT.runAsync(new RunAsyncCallback() {
                 @Override public void onFailure(Throwable reason) { s.onError(reason); }
-                @Override public void onSuccess() { s.onSuccess(builder.get()); }
+                @Override public void onSuccess() { s.onSuccess(b.create()); }
             }));
         }
     }

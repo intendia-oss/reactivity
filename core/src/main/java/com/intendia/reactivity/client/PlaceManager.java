@@ -22,7 +22,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
+@Singleton
 public class PlaceManager {
 
     private final EventBus eventBus;
@@ -289,7 +291,7 @@ public class PlaceManager {
     public static class NavigationEvent extends GwtEvent<NavigationEvent.NavigationHandler> {
         public static final Type<NavigationHandler> TYPE = new Type<>();
         public static Type<NavigationHandler> getType() { return TYPE; }
-        private PlaceRequest request;
+        private final PlaceRequest request;
         public NavigationEvent(PlaceRequest request) { this.request = request; }
         @Override public Type<NavigationHandler> getAssociatedType() { return TYPE; }
         public PlaceRequest getRequest() { return request; }
@@ -311,7 +313,7 @@ public class PlaceManager {
 
     public static class LockInteractionEvent extends GwtEvent<LockInteractionEvent.LockInteractionHandler> {
         public static final Type<LockInteractionHandler> TYPE = new Type<>();
-        private boolean lock;
+        private final boolean lock;
         public LockInteractionEvent(boolean lock) { this.lock = lock; }
         public boolean shouldLock() { return lock; }
         @Override public Type<LockInteractionHandler> getAssociatedType() { return TYPE; }

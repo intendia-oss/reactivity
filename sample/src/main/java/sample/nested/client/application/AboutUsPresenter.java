@@ -12,14 +12,14 @@ import io.reactivex.Single;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import sample.nested.client.NameTokens;
-import sample.nested.client.SampleEntryPoint.ClientModule.Presenters;
+import sample.nested.client.SampleEntryPoint.ClientModule.Bundle;
 import sample.nested.client.application.ApplicationPresenter.MainContent;
 
 public class AboutUsPresenter extends PresenterChild<AboutUsPresenter.MyView> {
 
     public static @Singleton class MyPlace extends Place {
-        @Inject MyPlace(Single<Presenters> p) {
-            super(NameTokens.aboutUsPage, p.map(Presenters::aboutUs));
+        @Inject MyPlace(Single<Bundle> p) {
+            super(NameTokens.aboutUsPage, p.map(Bundle::aboutUs));
         }
     }
 

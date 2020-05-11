@@ -17,15 +17,15 @@ import io.reactivex.subjects.BehaviorSubject;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import sample.nested.client.NameTokens;
-import sample.nested.client.SampleEntryPoint.ClientModule.Presenters;
+import sample.nested.client.SampleEntryPoint.ClientModule.Bundle;
 import sample.nested.client.application.ApplicationPresenter.MainContent;
 
 public class ContactPresenter extends PresenterChild<ContactPresenter.MyView> {
 
     public static @Singleton class MyPlace extends Place {
-        private BehaviorSubject<String> navigationHistory = BehaviorSubject.createDefault("");
-        @Inject MyPlace(Single<Presenters> p, EventBus bus) {
-            super(NameTokens.contactPage, p.map(Presenters::contact));
+        private final BehaviorSubject<String> navigationHistory = BehaviorSubject.createDefault("");
+        @Inject MyPlace(Single<Bundle> p, EventBus bus) {
+            super(NameTokens.contactPage, p.map(Bundle::contact));
             // In GWTP proxy events wake up the presenter, but this will break code splitting,
             // alternatively you can create a middle store or just inject the place in the presenter
             bus.addHandler(PlaceManager.NavigationEvent.TYPE, event -> {
