@@ -31,7 +31,7 @@
         <dependency><groupId>com.google.guava</groupId><artifactId>guava-gwt</artifactId><version>${guava.version}</version></dependency>
         <dependency><groupId>com.google.gwt</groupId><artifactId>gwt-user</artifactId><scope>provided</scope></dependency>
         <dependency><groupId>com.google.gwt</groupId><artifactId>gwt-dev</artifactId><scope>provided</scope></dependency>
-        <dependency><groupId>com.intendia.gwt</groupId><artifactId>rxjava2-gwt</artifactId><version>2.2.10-gwt1</version></dependency>
+        <dependency><groupId>com.intendia.gwt</groupId><artifactId>rxjava2-gwt</artifactId><version>2.2.20-gwt1</version></dependency>
         <dependency><groupId>com.intendia.gwt.rxgwt2</groupId><artifactId>rxgwt</artifactId><version>2.2</version></dependency>
         <dependency><groupId>com.intendia.qualifier</groupId><artifactId>qualifier</artifactId><version>0.23</version></dependency>
         <dependency><groupId>com.intendia.qualifier</groupId><artifactId>qualifier</artifactId><classifier>sources</classifier><version>0.23</version></dependency>
